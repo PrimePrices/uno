@@ -1,0 +1,23 @@
+<!DOCTYPE html> 
+<html> 
+    <head> 
+        <title>Login</title> 
+        <link rel="stylesheet" type ="text/css" href="uno/static/game_style.css">
+    </head> 
+    <body> 
+        <form method="post" action="/login"> 
+            <label for="username">Username</label> 
+            <input type="text" name="username" id="username"/>  
+            <br/> 
+            <br> 
+            <label for="password">Password</label> 
+            <input type="password" name="password" id="password"/>  
+            <br/> 
+            <br> 
+            <input type="checkbox" id="remeber_me" name="remember_me" value="remember">
+            <label for="remeber_me">Remember me?</label><br>
+            <input type="submit" name="submit" id="submit" value="Login"/>  
+        </form>
+        <a href="/create_account">Or Create An Account Instead</a> 
+    </body> 
+</html>

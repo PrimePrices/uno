@@ -1,0 +1,25 @@
+instructions.txt
+socketio messages:
+    player_joined:
+        username
+    player_left:
+        username
+    player_won
+        username
+    player_drew_a_card:
+        username
+    player_played_a_card:
+        username, card, card_n, cards_left
+    player_reversed_direction:
+        username
+    your_turn
+    you_drew_a_card
+        username, card
+    you_won
+        username
+    uno_challenge
+        from, to, timestamp
+    setting_updated
+        json
+    message_in_chat
+        username, message
