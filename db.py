@@ -20,7 +20,7 @@ def init_db(cursor, conn):
         cursor.executescript(create.read())
 
 def card_to_json(string):
-    return {"colour": {"g": "green", "b": "blue", "y":"yellow", "r":"red"}[string[0]], "value":int(string[1])}
+    return {"colour": {"g": "green", "b": "blue", "y":"yellow", "r":"red", "u": "none"}[string[0]], "value":int(string[1])}
 
 @connect_db
 def get_game_info(cursor, conn, id):
@@ -39,17 +39,23 @@ def get_game_info_personalised(cursor, conn, id, user):
     print(data)
     cursor.execute(f'SELECT cards FROM hands WHERE username="{user}"')
     a = cursor.fetchall()[0]
-    print(f"players-hand={a}")
+    print(f"players-hand={a} sent from get_game_info_personalised")
     for i in data["players"]:
         if i["username"]==user:
             i["hand"]=a[0]
-        
+            data["you"]=i
+        i["you"]=(i["username"]==user)
     print(data)
     return data
 
 @connect_db
 def make_game(cursor, conn, rules, user):
-    this_deck=["r0", "y0", "b0", "g0"]+[i+j for i in "rgby" for j in "123456789rsd"]*2+["uw", "u4"]*4
+    cursor.execute(f"SELECT * FROM hands WHERE username='{user}'")
+    data=cursor.fetchall()
+    print(f"{data=} sent for make_game")
+    if data: # checks if player is already in game or not
+        return "game/"+str(data[0][2])    #need to get link for game
+    this_deck=["r0", "y0", "b0", "g0"]+[i+j for i in "rgby" for j in "123456789rsd"]*2+["u1", "u4"]*4
     random.shuffle(this_deck)
     this_deck="".join(this_deck)
     cursor.execute(f'INSERT INTO games(rules, number_of_players, players, next_player, direction, discard, draw) VALUES ("{rules}", 0, "", "{user}", 0, "g5", "{this_deck}")')
@@ -58,32 +64,39 @@ def make_game(cursor, conn, rules, user):
     print("Made Game")
     print(cursor.execute(f'SELECT * FROM games WHERE next_player="{user}"').fetchall()[0])
     add_player(cursor, conn, link, user)
+    """THIS NEEDS TO BE DELETED BEFOR IT ENTERS PRODUCTION!!"""
+    add_player(cursor, conn, link, "Ryan Kabir")
     return "game/"+str(link)
+def draw_card(cursor, conn, game, number_of_cards=1):
+    cursor.execute(f"SELECT draw FROM games WHERE id='{game}'")
+    draw=cursor.fetchall()[0][0]
+    print(f"{draw=} sent from draw_card")
+    if len(draw)>=number_of_cards*2:
+        cards=draw[:number_of_cards*2]
+        draw=draw[number_of_cards*2:]
+        cursor.execute(f"UPDATE games SET draw='{draw}' WHERE id='{game}'")
+        conn.commit()
+        return cards
+    else: 
+        return "g6"*number_of_cards
 def check_if_player_is_in_game(cursor, conn, game, player):
     cursor.execute(f'SELECT * FROM hands WHERE game_id={game} AND username="{player}"')
     data=cursor.fetchall()
     print(f"{data=}")
     return bool(data)
-def add_player(cursor, conn, game, player):
+def add_player(cursor, conn, game, player): # returns game=> possibly unnecessary
     if check_if_player_is_in_game(cursor, conn, game, player):
         return "error 409"
-    cursor.execute(f'SELECT number_of_players, players, draw FROM games WHERE id={game}')
+    cursor.execute(f'SELECT number_of_players, players FROM games WHERE id="{game}"')
     data=cursor.fetchall()[0]
-    print(f"{data=}")
+    print(f"{data=} sent from add_player")
     number_of_players=data[0]
     players=data[1]
-    draw=data[2]
-    cursor.execute(f'SELECT draw FROM games WHERE id={game}')
-    draw=cursor.fetchall()[0]#[0]
-    print(f"{draw=}")
-    hand=draw[:14]
-    draw=draw[14:]
-    print(f"given hand {hand} to {player} leaving a deck of {draw}")
-    cursor.execute(f'UPDATE games SET draw="{draw}", number_of_players={number_of_players+1}, players="{players+","+player}" WHERE id={game}')
-    cursor.execute(f'INSERT INTO hands(position, game_id, cards, username, number_of_cards) VALUES ({number_of_players}, {game}, "{"".join(hand)}", "{player}", 7)')
+    hand=draw_card(cursor, conn, game, number_of_cards=7)
+    cursor.execute(f'UPDATE games SET number_of_players={number_of_players+1}, players="{players+","+player}" WHERE id={game}')
+    cursor.execute(f'INSERT INTO hands(position, game_id, cards, username, number_of_cards) VALUES ({number_of_players}, {game}, "{hand}", "{player}", 7)')
     conn.commit()
     return game
-    
 """
 A user can't log on twice with the same account
 Users not logged on get given a random account generated with a "<game_id>;<position>;<random 10 letter string>"

@@ -45,10 +45,8 @@ function load_player(player){
         for(i=0; i<player["number_of_cards"]*2; i=i+2){
             console.log(player["hand"], i)
             colour={r:"red", y:"yellow", g:"green", b:"blue", u:"none"}[player["hand"][i]]
-            console.log(player["hand"][i], colour)
             value={1:1,2:2,3:3,4:4,5:5,6:6,7:7,8:8,9:9,0:0,r:"reverse",d:"draw2", s:"skip"}[player["hand"][i+1]]
             hand.push({colour:colour, value:value})
-            console.log(hand)
         }
     }
     for (const j in hand){
@@ -89,10 +87,13 @@ window.onload = async function(){
     console.log(players)
     const opponents=document.getElementById("opponents")
     for (const i in players){
-        opponents.appendChild(load_player(players[i]))
+        console.log(players[i].you)
+        if (!players[i]["you"]){
+            opponents.appendChild(load_player(players[i]))
+        }
     }
     render_game_state(info.draw_length, info.discard)
-    load_player()
+    document.getElementById("myHand").appendChild(load_player(info["you"]))
     start_conn()
 }
 function render_game_state(draw_cards, discard){

@@ -1,13 +1,18 @@
 from flask import Flask, render_template, request, send_from_directory, redirect, abort, make_response, Response
-from flask_socketio import SocketIO, emit
+from flask_socketio import SocketIO, emit, disconnect
 from markupsafe import escape
+from flask_login import LoginManager
 import threading
 import sqlite3
 import random
 from db import *
 app=Flask(__name__)
-socketio =SocketIO(app)
 app.secret_key = "Proof by induction should always be taught by ducks!"
+login_manager=LoginManager()
+login_manager.init_app(app)
+socketio =SocketIO(app)
+from user_handler import *
+
 
 special_cards={"u0":"blank","u1":"wild","u2":"N/A","u3":"N/A","u4":"draw4","u5":"N/A","u6":"N/A","u7":"N/A","u8":"N/A","u9":"N/A"}
 @app.route("/uno/newgame/<rules>", methods=["GET", "POST"])
@@ -34,26 +39,9 @@ def render_json(game_name):
     return info
     #main.games[escape(game_name)]
 
-#login
-@app.route("/uno/index/")
 @app.route("/uno/")
 def start():
-    if request.cookies.get("username", 0)!=0:
-        return render_template("create.html")
-    return redirect("/login")
-@app.route("/new_account")
-def create_account():
-    return 1
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    if request.method=="GET":
-        return render_template("login.html")
-    else:
-        print(request.form["username"])
-        response=make_response(redirect("/uno/"))
-        response.set_cookie("username", request.form["username"])
-        response.set_cookie("password", request.form["password"], secure=True)
-        return response
+    return render_template("create.html")
 
 #images and resources
 @app.route("/uno/static/<anything>", methods=["GET"])
