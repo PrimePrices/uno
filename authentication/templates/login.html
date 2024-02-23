@@ -8,7 +8,10 @@
         <form method="post" action="/auth/login"> 
             <label for="username">Username</label> 
             <input type="text" name="username" id="username"/>  
-            <br/> 
+            <br/>
+            {% if username_invalid %}
+                <p style="color:red">Username Not recognised</p>
+            {% endif %}
             <br> 
             <label for="password">Password</label> 
             <input type="password" name="password" id="password"/>  

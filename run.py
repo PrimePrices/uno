@@ -8,8 +8,6 @@ import random
 
 app=Flask(__name__)
 app.secret_key = "Proof by induction should always be taught by ducks!"
-login_manager=LoginManager()
-login_manager.init_app(app)
 socketio =SocketIO(app)
 
 from admin.__init__ import init_admin_app
@@ -18,6 +16,9 @@ from authentication.__init__ import init_auth_app
 init_uno_app(app)
 init_admin_app(app)
 init_auth_app(app)
+
+
+
 
 def has_no_empty_params(rule):
     defaults = rule.defaults if rule.defaults is not None else ()
@@ -63,4 +64,4 @@ def not_found(e):
         return send_from_directory("uno/images/none", "404.svg")
 """
 if __name__ == '__main__':
-    socketio.run(app)
+    socketio.run(app, debug=True)

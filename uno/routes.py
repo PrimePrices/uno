@@ -1,6 +1,5 @@
 from flask import Blueprint, render_template, send_from_directory, request, redirect
 from .db import *
-#from .__init__ import uno_bp
 uno_bp = Blueprint("uno", __name__, static_folder="uno/statics", template_folder="templates")
 
 special_cards={"u0":"blank","u1":"wild","u2":"N/A","u3":"N/A","u4":"draw4","u5":"N/A","u6":"N/A","u7":"N/A","u8":"N/A","u9":"N/A"}
