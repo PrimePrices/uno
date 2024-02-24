@@ -6,7 +6,7 @@ from .routes import uno_bp
 # Import routes to register them
 from . import routes
 
+
 def init_uno_app(app):
-    print("uno app initialised?")
     init_db()
     app.register_blueprint(uno_bp, url_prefix='/uno')

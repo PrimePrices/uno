@@ -5,16 +5,11 @@ from .models import login_manager, connect_db, User, load_user
 auth_bp = Blueprint('auth', __name__, static_folder="uno/statics", template_folder="templates")
 
 
-@auth_bp.route("/dashboard")
-def dashboard():
-    return "Index"
+
 
 @auth_bp.route("/logout")
 def logout():
     return "Logout"
-@auth_bp.route("/")
-def index():
-    return "Index"
 @auth_bp.route("/profile")
 def profile():
     return "profile"
@@ -28,18 +23,18 @@ def login():
         remember_me=request.form.get("remember_me")
         User=load_user(name)
         if User is None:
-            return redirect("/auth/login?username_valid=False")
+            return redirect("/login?username_valid=0")
         if User.check_password(password):
             return redirect("/uno")
     print(request.args.get("username_valid"))
-    print(request.args.get("username_valid", default=True, type=bool))
-    print("invalid_username=", not(request.args.get("username_valid", default=True, type=bool)))
-    return render_template("login.html", usename_invalid=not(request.args.get("username_valid", default=True, type=bool)))
+    print(request.args.get("username_valid", default=1, type=int))
+    print("invalid_username=", not request.args.get("username_valid", default=1, type=int))
+    return render_template("login.html", usename_invalid=not request.args.get("username_valid", default=1, type=int))
 @auth_bp.route("/sign_up")
 def sign_up():
     return "Sign up"
 
 @login_manager.unauthorized_handler
 def unauthorized_callback():
-    return redirect("/auth/login?next="+request.path)
+    return redirect("/login?next="+request.path)
 

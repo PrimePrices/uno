@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, send_from_directory, request, redirect
 from .db import *
-uno_bp = Blueprint("uno", __name__, static_folder="uno/statics", template_folder="templates")
+uno_bp = Blueprint("uno", __name__)
 
 special_cards={"u0":"blank","u1":"wild","u2":"N/A","u3":"N/A","u4":"draw4","u5":"N/A","u6":"N/A","u7":"N/A","u8":"N/A","u9":"N/A"}
 @uno_bp.route("/newgame/<rules>", methods=["GET", "POST"])
@@ -36,7 +36,7 @@ def start():
 #images and resources
 @uno_bp.route("/static/<anything>", methods=["GET"])
 def get(anything):
-    return send_from_directory("uno/statics",anything)
+    return send_from_directory("statics",anything)
 @uno_bp.route("/images/<colour>/<value>.svg")
 def get_svg(colour, value):
     value=value+".svg"

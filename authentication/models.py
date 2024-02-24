@@ -6,7 +6,7 @@ from flask import redirect, request
 login_manager=LoginManager()
 def connect_db(function):
     def wrapper(* args, ** kwargs):
-        conn=sqlite3.connect("database.db")
+        conn=sqlite3.connect("authentication/database.db")
         cursor=conn.cursor()
         print(f"{function.__name__} access granted")
         try:
@@ -20,7 +20,7 @@ def connect_db(function):
     return wrapper
 @connect_db
 def init_db(cursor, conn):
-    with open("create.sql", "r") as create:
+    with open("authentication/create.sql", "r") as create:
         cursor.executescript(create.read())
     conn.close()
 

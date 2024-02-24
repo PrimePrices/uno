@@ -1,7 +1,7 @@
 import sqlite3, random
 def connect_db(function):
     def wrapper(* args, ** kwargs):
-        conn=sqlite3.connect("database.db")
+        conn=sqlite3.connect("uno/database.db")
         cursor=conn.cursor()
         print(f"{function.__name__} access granted")
         try:
@@ -13,15 +13,15 @@ def connect_db(function):
         print(f"{function.__name__} access finished")
         return result
     return wrapper
-
+# type: ignore
 @connect_db
 def init_db(cursor, conn):
-    with open("create.sql", "r") as create:
+    with open("uno/create.sql", "r") as create:
         cursor.executescript(create.read())
 
 def card_to_json(string):
     return {"colour": {"g": "green", "b": "blue", "y":"yellow", "r":"red", "u": "none"}[string[0]], "value":int(string[1])}
-
+# type: ignore
 @connect_db
 def get_game_info(cursor, conn, id):
     cursor.execute(f'SELECT * FROM games WHERE id={id};')
@@ -33,6 +33,7 @@ def get_game_info(cursor, conn, id):
         data.append({"position":i[2], "number_of_cards":i[1], "username":i[0]})
     discard=card_to_json(a[6])
     return {"id": a[0], "rules": a[1], "number_of_players":a[2], "players": data, "next_player": a[4], "direction": a[5], "discard": discard, "draw_length":len(a[7])//2}
+# type: ignore
 @connect_db
 def get_game_info_personalised(cursor, conn, id, user):
     data=get_game_info(id)
@@ -47,7 +48,7 @@ def get_game_info_personalised(cursor, conn, id, user):
         i["you"]=(i["username"]==user)
     print(data)
     return data
-
+# type: ignore
 @connect_db
 def make_game(cursor, conn, rules, user):
     cursor.execute(f"SELECT * FROM hands WHERE username='{user}'")

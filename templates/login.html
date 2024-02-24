@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+    <form method="post" action="/auth/login"> 
+        <label for="username">Username</label> 
+        <input type="text" name="username" id="username"/>  
+        <br/>
+        {% if username_invalid %}
+            <p style="color:red">Username Not recognised</p>
+        {% endif %}
+        <br> 
+        <label for="password">Password</label> 
+        <input type="password" name="password" id="password"/>  
+        <br/> 
+        <br> 
+        <input type="checkbox" id="remeber_me" name="remember_me" value="remember">
+        <label for="remeber_me">Remember me?</label><br>
+        <input type="submit" name="submit" id="submit" value="Login"/>  
+    </form>
+    <a href="/sign-up">Or Create An Account Instead</a> 
+{% endblock %}
+</html>
