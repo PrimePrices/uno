@@ -1,19 +1,11 @@
-
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <link rel="icon" type="image/x-icon" href="/uno/images/blue/reverse.svg">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% extends "base.html" %}
+{% block statics %}
     <title>Uno</title>
     <link rel="stylesheet" type ="text/css" href="/static/game_style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.3/socket.io.js"></script>
     <script src="/uno/static/script.js"></script>
-</head>
-
-<body>
-</body>
+{% endblock %}
+{%block content %}
     <div id="header"></div>
     <br>
     <div id="opponents"></div>
@@ -21,4 +13,4 @@
     <div id="gameState"></div>
     <br>
     <div id="myHand"></div>
-</html>
+{% endblock %}

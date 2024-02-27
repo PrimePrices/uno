@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+    <form method="post" action="/auth/sign_up"> 
+        <label for="username">Username</label> 
+        <input type="text" name="username" id="username"/>  
+        <br/>
+        {% if username_invalid %}
+            <p style="color:red">Username Already Taken</p>
+        {% endif %}
+        {% if username_is_none %}
+            <p style="color:red">Username must be filled in</p>
+        {% endif %}
+        {% if invalid_format %}
+            <p style="color:red">Username cannot contain "default_"</p>
+        {% endif %}
+        <br> 
+        <label for="password">Password</label> 
+        <input type="password" name="password" id="password"/>  
+        <br> 
+        <label for="password_repeated">Password again</label> 
+        <input type="password" name="password_repeated" id="password_repeated"/>
+        {% if passwords_dont_match %}
+            <p style="color:red">Passwords don't match</p>
+        {% endif %}
+        <br> 
+        <label for="email">Email:</label>
+        <input type="text" name="email" id="email">
+        {% if email_taken %}
+            <p style="color:red">An account already exists for this email</p>
+        {% endif %}
+        <br>
+        <input type="submit" name="submit" id="submit" value="Submit"/> 
+    </form>
+    <a href="/login">Or log in Instead</a> 
+{% endblock %}
+</html>

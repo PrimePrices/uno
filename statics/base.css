@@ -1,7 +1,11 @@
 
 body {
   background-color: #566992;
+  font-family: Arial, sans-serif;
+  height: 100vh;
+  margin: 0;
 }
+
 .header{
   height: auto;
   position:fixed;

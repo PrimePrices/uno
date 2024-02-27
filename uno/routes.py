@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, send_from_directory, request, redirect
 from .db import *
+from flask_login import login_required
 uno_bp = Blueprint("uno", __name__)
 
 special_cards={"u0":"blank","u1":"wild","u2":"N/A","u3":"N/A","u4":"draw4","u5":"N/A","u6":"N/A","u7":"N/A","u8":"N/A","u9":"N/A"}
@@ -27,7 +28,7 @@ def render_json(game_name):
     # info structure = {"id":, "rules", "number_of_players", "players": data, "next_player":, "direction":, "discard":, "draw":}
     return info
     #main.games[escape(game_name)]
-
+@login_required
 @uno_bp.route("/")
 def start():
     print("start accessed")

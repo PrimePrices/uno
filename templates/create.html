@@ -1,16 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <link rel="icon" type="image/x-icon" href="/uno/images/blue/reverse.svg">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type ="text/css" href="/static/game_style.css">
-    <link rel="stylesheet" href="/static/create_style.css">
+{% extends "base.html" %}
+{% block statics %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.3/socket.io.js"></script>
+    <link rel="stylesheet" type ="text/css" href="/static/create_style.css">
     <title>Customize Uno Game</title>
-</head>
-
-<body>
+{% endblock %}
+{%block content %}
     <div class="container">
         <h1>Customize Your Uno Game</h1>
         <label for="player-count">Number of Players:</label>
@@ -26,6 +20,4 @@
         <button onclick="startGame()">Start Game</button>
     </div>
     <script src="/uno/static/create_script.js"></script>
-</body>
-
-</html>
+{% endblock %}

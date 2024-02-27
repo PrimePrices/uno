@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, send_from_directory, redirect, abort, make_response, Response, url_for
 from flask_socketio import SocketIO, emit, disconnect
+from flask_login import login_required
 from admin.__init__ import init_admin_app
 from uno.__init__ import init_uno_app
 from authentication.__init__ import init_auth_app
