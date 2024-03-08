@@ -1,4 +1,5 @@
 import sqlite3, random
+from flask_login import current_user
 def connect_db(function):
     def wrapper(* args, ** kwargs):
         conn=sqlite3.connect("uno/database.db")

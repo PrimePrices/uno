@@ -1,13 +1,21 @@
 blank={colour:"none", value:"back"}
 
-function load_card(json){
-    const card=document.createElement("div");
-    card.className="card";
-    const img=document.createElement("object");
-    img.data="/uno/images/"+json.colour+"/" + json.value+".svg";
-    img.type="image/svg+xml";
+function load_card({colour, value}) {
+    const card = document.createElement("div");
+    card.className = "card";
+    const img = document.createElement("img");
+    img.addEventListener("click", clicked_card);
+    img.src = `/uno/images/${colour}/${value}.svg`;
     card.appendChild(img);
-    return card
+    return card;
+}
+function clicked_card(e){
+    console.log(e)
+    let cardElem= e.target
+    if (cardElem.parentNode.parentNode.parentNode.getAttribute("data-you")=="true"){
+        console.log("valid")
+        socket.emit()
+    }
 }
 function player_played_card(data){
     var username = data["username"]
@@ -23,13 +31,17 @@ function start_conn(){
     var socket = io.connect(channel);
     socket.on('update_game_state', function(data) {
         if (data.action=="player_played_a_card"){
-            player_played_card(data)}
+            player_played_card(data);
+        }else if (data.action=="players_turn"){
+            console.log(data.player, "'s turn");
+        }
         //document.getElementById('gameState').innerText = data.game_state;
     });
 }
 function load_player(player){
-    console.log("player:", player )
+    console.log("player:", player)
     const elem = document.createElement("div");
+    elem.setAttribute("data-you", player["you"])
     elem.className="player";
     elem.id=player["username"]
     const name=document.createElement("div")
@@ -62,42 +74,8 @@ function load_player(player){
     }
     return elem
 }
-function getCookie(cname) {
-  let name = cname + "=";
-  let decodedCookie = decodeURIComponent(document.cookie);
-  let ca = decodedCookie.split(';');
-  for(let i = 0; i <ca.length; i++) {
-    let c = ca[i];
-    while (c.charAt(0) == ' ') {
-      c = c.substring(1);
-    }
-    if (c.indexOf(name) == 0) {
-      return c.substring(name.length, c.length);
-    }
-  }
-  return "";
-}
-//This loads each players hand
-window.onload = async function(){
-    let cookie= String(getCookie("username"))
-    if (cookie){
-        var response=await fetch(new URL(window.location).pathname+"/"+cookie+".json")
-    }
-    var info = await response.json()
-    console.log(info)
-    var players=info["players"]
-    console.log(players)
-    const opponents=document.getElementById("opponents")
-    for (const i in players){
-        console.log(players[i].you)
-        if (!players[i]["you"]){
-            opponents.appendChild(load_player(players[i]))
-        }
-    }
-    render_game_state(info.draw_length, info.discard)
-    document.getElementById("myHand").appendChild(load_player(info["you"]))
-    start_conn()
-}
+
+
 function render_game_state(draw_cards, discard){
     console.log(discard)
     const env = document.getElementById("gameState")
@@ -115,4 +93,22 @@ function display_art(){
         } 
         document.body.appendChild(elem)
     }
+}
+
+
+window.onload = async function(){
+    let response = await fetch((new URL(window.location)).pathname+"/personalised.json")
+    var info = await response.json()
+    console.log(info)
+    var players=info["players"]
+    console.log(players)
+    const opponents=document.getElementById("opponents")
+    for (const i in players){
+        if (!players[i]["you"]){
+            opponents.appendChild(load_player(players[i]))
+        }
+    }
+    render_game_state(info.draw_length, info.discard)
+    document.getElementById("myHand").appendChild(load_player(info["you"]))
+    start_conn()
 }

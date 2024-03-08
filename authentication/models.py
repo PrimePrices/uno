@@ -1,4 +1,5 @@
 import sqlite3
+from typing import Any
 import bcrypt
 from flask_login import LoginManager, UserMixin, login_required, current_user
 from flask import redirect, request
@@ -34,26 +35,36 @@ def init_db(cursor, conn):
 
 class User(UserMixin):
     def __init__(self, id, username, hashed_password, email):
-        self.id=id
-        self.username= username
-        self.email = email
+        self.id: int=id
+        self.username:str= username
+        self.email:str = email
         self.hashed_password = hashed_password
-        self.authenticated = False
+        self.authenticated:bool = False
+    def get_id(self)->str:
+        return str(self.id)
+    def is_authenticated(self):
+        return self.authenticated
+    def is_active(self):
+        return True
+    def is_anonymous(self):
+        return "default_" in self.username
     def check_password(self, password):
         return check_password_hash(self.hashed_password, password)
+    def __repr__(self) -> str:
+        return str(self.username)
 
 
 @login_manager.user_loader
 def load_user(user_id):
-    conn, cursor = get_db() 
-    if type(user_id)==int:
-        cursor.execute(f"SELECT * from user where id = {user_id}")
-    else: #username
-        cursor.execute(f"SELECT * FROM user WHERE username = '{user_id}'")
-    user=cursor.fetchone()
+    print("getting user object for", user_id, "as type", type(user_id))
+    conn, cursor=get_db()
+    if user_id.isdigit():
+        cursor.execute("SELECT * FROM user WHERE id = ?", (int(user_id),))
+    else: 
+        cursor.execute("SELECT * FROM user WHERE username = ?", (user_id,))
+    user = cursor.fetchone()
     conn.close()
-    print(f"{user=}")
     if user is None:
-        return None # Change for anonymous user
-    else: return User(user[0], user[1], user[2], user[3])
-    
+        return None
+
+    return User(user[0], user[1], user[2], user[3])

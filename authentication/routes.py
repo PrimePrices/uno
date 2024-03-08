@@ -1,10 +1,9 @@
 from flask import render_template, redirect, request, flash, Blueprint
-from flask_login import login_user
+from flask_login import login_user, current_user
 from .models import login_manager, connect_db, User, load_user
 from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
 auth_bp = Blueprint('auth', __name__, static_folder="uno/statics", template_folder="templates")
-
 
 
 @auth_bp.route("/logout")
@@ -15,12 +14,12 @@ def profile():
     return "profile"
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
-#    if current_user.is_authenticated:
-#        return redirect("/profile")
+    if current_user.is_authenticated():
+        return redirect("/profile")
     if request.method=="POST":
         name=request.form.get("username")
         password=request.form.get("password")
-        remember_me=request.form.get("remember_me")
+        remember_me:bool="True"==request.form.get("remember_me")
         next=request.args.get("next")
         User=load_user(name)
         print(f"{User} is trying to log in")
@@ -28,7 +27,10 @@ def login():
             return render_template("login.html", username_invalid=True)
         if User.check_password(password):
             User.authenticated=True
-            login_user(User)
+            login_user(User, remember=True)
+            flash("Logged in successfully", "success")
+            print(f"{current_user=}, {current_user.is_authenticated()=}")
+            print("password accepted")
             return redirect(next or "/index")
         else:
             print(f"{password=}")
@@ -50,7 +52,7 @@ def sign_up(cursor, conn):
         cursor.execute(f"SELECT * FROM user WHERE username='{username}'")
         if cursor.fetchone() or "default_" in username:
             return render_template("signup.html", username_invalid=True)
-        if password!=password_again:
+        if password!=password_again or password is None:
             return render_template("signup.html", password_dont_match=True)
         cursor.execute(f"SELECT * FROM user WHERE email='{email}'")
         if cursor.fetchone():
@@ -65,5 +67,6 @@ def sign_up(cursor, conn):
 
 @login_manager.unauthorized_handler
 def unauthorized_callback():
+    print(f"unathorised access to {request.path} by user {current_user}")
     return redirect("/login?next="+request.path)
 

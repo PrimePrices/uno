@@ -1,12 +1,12 @@
 from flask import Blueprint, render_template, send_from_directory, request, redirect
 from .db import *
-from flask_login import login_required
+from flask_login import login_required, current_user
 uno_bp = Blueprint("uno", __name__)
 
 special_cards={"u0":"blank","u1":"wild","u2":"N/A","u3":"N/A","u4":"draw4","u5":"N/A","u6":"N/A","u7":"N/A","u8":"N/A","u9":"N/A"}
 @uno_bp.route("/newgame/<rules>", methods=["GET", "POST"])
 def newGame(rules):
-    user=request.cookies.get("username", "default")
+    user=current_user.username
     game_name=make_game(rules, user)
     return redirect("/uno/"+game_name)
 @uno_bp.route("/<game_name>/join/")
@@ -17,9 +17,11 @@ def join(game):
 @uno_bp.route("/game/<game_name>")
 def render(game_name):
     return render_template("game.html")
-@uno_bp.route("/game/<game_name>/<me>.json")
-def render_json_personalised(game_name, me):
-    info=get_game_info_personalised(game_name, me)
+@uno_bp.route("/game/personalised/<game_name>/.json")
+@uno_bp.route("/game/<game_name>/personalised.json", methods=["GET"])
+def render_json_personalised(game_name):
+    user = current_user.username
+    info=get_game_info_personalised(game_name, user)
     # info structure = {"id":, "rules", "number_of_players", "players": data, "next_player":, "direction":, "discard":, "draw":}
     return info
 @uno_bp.route("/game/<game_name>.json")

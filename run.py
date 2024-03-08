@@ -5,10 +5,11 @@ from admin.__init__ import init_admin_app
 from uno.__init__ import init_uno_app
 from authentication.__init__ import init_auth_app
 from authentication.routes import logout, login, profile, sign_up
-
+from datetime import timedelta
 app=Flask(__name__)
 app.secret_key = "Proof by induction should always be taught by ducks!"
 socketio =SocketIO(app)
+app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=30)
 init_uno_app(app)
 init_admin_app(app)
 init_auth_app(app)
@@ -31,6 +32,7 @@ def site_map()->list:
     # links is now a list of url, endpoint tuples
 @app.route("/")
 @app.route("/index")
+@login_required
 def index():
     return render_template("base.html")
 @app.route("/static/<anything>")

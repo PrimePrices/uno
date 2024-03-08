@@ -27,3 +27,7 @@ def transmit(game, action, user, other_details={}):
 def recieved(json):
     game=json["game"]
     action=json["action"]
+    user=current_user.username
+    other_details=json["other_details"]
+    print(f"recieved {json=}")
+    transmit(game, action, user, other_details)
