@@ -1,12 +1,11 @@
 from flask import Blueprint
 from .db import init_db
 from .routes import uno_bp
-#uno_bp = Blueprint('uno', __name__)
-
-# Import routes to register them
-from . import routes
+from .socketing import register_routes
+#from . import routes
 
 
-def init_uno_app(app):
+def init_uno_app(app, socketio):
     init_db()
+    register_routes(socketio)
     app.register_blueprint(uno_bp, url_prefix='/uno')

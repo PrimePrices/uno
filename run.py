@@ -1,16 +1,18 @@
 from flask import Flask, render_template, request, send_from_directory, redirect, abort, make_response, Response, url_for
-from flask_socketio import SocketIO, emit, disconnect
+from flask_socketio import SocketIO
 from flask_login import login_required
 from admin.__init__ import init_admin_app
 from uno.__init__ import init_uno_app
 from authentication.__init__ import init_auth_app
 from authentication.routes import logout, login, profile, sign_up
 from datetime import timedelta
+from uno.socketing import *
+import logging
 app=Flask(__name__)
 app.secret_key = "Proof by induction should always be taught by ducks!"
-socketio =SocketIO(app)
+socketio=SocketIO(app)
 app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=30)
-init_uno_app(app)
+init_uno_app(app, socketio)
 init_admin_app(app)
 init_auth_app(app)
 
@@ -18,7 +20,20 @@ def has_no_empty_params(rule)->bool:
     defaults = rule.defaults if rule.defaults is not None else ()
     arguments = rule.arguments if rule.arguments is not None else ()
     return len(defaults) >= len(arguments)
-
+logger=logging.getLogger("werkzeug")
+class ExcludeRoutesFilter(logging.Filter):
+    def filter(self, record):
+        excluded_strings = [
+            "GET /uno/images/",
+            "GET /uno/favicon.ico",
+            "GET /uno/static/",
+            "GET /static/"
+        ]
+        for i in excluded_strings:
+            if i in record.getMessage():
+                return False
+        return True
+logger.addFilter(ExcludeRoutesFilter())
 @app.route("/site-map")
 def site_map()->list:
     links = []

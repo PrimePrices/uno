@@ -6,17 +6,39 @@ function load_card({colour, value}) {
     const img = document.createElement("img");
     img.addEventListener("click", clicked_card);
     img.src = `/uno/images/${colour}/${value}.svg`;
+    img.setAttribute("data-value", value);
+    img.setAttribute("data-colour", colour);
     card.appendChild(img);
     return card;
 }
+function get_game_id(){
+    return new URL(window.location).pathname
+}
+
 function clicked_card(e){
     console.log(e)
     let cardElem= e.target
     if (cardElem.parentNode.parentNode.parentNode.getAttribute("data-you")=="true"){
         console.log("valid")
-        socket.emit()
+        console.log(e.target)
+        const value = cardElem.getAttribute("data-value");
+        const colour = cardElem.getAttribute("data-colour");
+        socket.emit({"action": "player_played_a_card", "card": {"value": value, "colour": colour}, "game": get_game_id()});
     }
 }
+
+const channel = new URL(window.location).pathname
+socket = io.connect(channel);
+console.log("connected")
+console.log(socket)
+socket.on('update_game_state', function(data) {
+    if (data.action=="player_played_a_card"){
+        player_played_card(data);
+    }else if (data.action=="players_turn"){
+        console.log(data.player, "'s turn");
+    }
+        //document.getElementById('gameState').innerText = data.game_state;
+});
 function player_played_card(data){
     var username = data["username"]
     var card = data["card"]
@@ -24,20 +46,7 @@ function player_played_card(data){
     var cards_left=data["cards_left"]
     const div=document.getElementById(username)
     var hand=div.childNodes()[1]
-	var card_elem=hand.childNodes()[card_n]
-}
-function start_conn(){
-    const channel=new URL(window.location).pathname+"/updates"
-    var socket = io.connect(channel);
-    socket.on('update_game_state', function(data) {
-        if (data.action=="player_played_a_card"){
-            player_played_card(data);
-        }else if (data.action=="players_turn"){
-            console.log(data.player, "'s turn");
-        }
-        //document.getElementById('gameState').innerText = data.game_state;
-    });
-}
+}	
 function load_player(player){
     console.log("player:", player)
     const elem = document.createElement("div");
@@ -110,5 +119,4 @@ window.onload = async function(){
     }
     render_game_state(info.draw_length, info.discard)
     document.getElementById("myHand").appendChild(load_player(info["you"]))
-    start_conn()
 }

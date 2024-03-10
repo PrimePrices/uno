@@ -4,14 +4,12 @@ def connect_db(function):
     def wrapper(* args, ** kwargs):
         conn=sqlite3.connect("uno/database.db")
         cursor=conn.cursor()
-        print(f"{function.__name__} access granted")
         try:
             result=function(cursor, conn, * args, ** kwargs)
         except BaseException as x:
-            print(function.__name__)
+            print(function.__name__ + " error: " + str(x))
             raise
         finally: conn.close()
-        print(f"{function.__name__} access finished")
         return result
     return wrapper
 # type: ignore
@@ -38,10 +36,8 @@ def get_game_info(cursor, conn, id):
 @connect_db
 def get_game_info_personalised(cursor, conn, id, user):
     data=get_game_info(id)
-    print(data)
     cursor.execute(f'SELECT cards FROM hands WHERE username="{user}"')
     a = cursor.fetchall()[0]
-    print(f"players-hand={a} sent from get_game_info_personalised")
     for i in data["players"]:
         if i["username"]==user:
             i["hand"]=a[0]
@@ -64,7 +60,6 @@ def make_game(cursor, conn, rules, user):
     link=cursor.execute(f'SELECT id FROM games WHERE next_player="{user}" AND draw="{this_deck}"').fetchall()[0][0]
     conn.commit()
     print("Made Game")
-    print(cursor.execute(f'SELECT * FROM games WHERE next_player="{user}"').fetchall()[0])
     add_player(cursor, conn, link, user)
     """THIS NEEDS TO BE DELETED BEFOR IT ENTERS PRODUCTION!!"""
     add_player(cursor, conn, link, "Ryan Kabir")
@@ -72,7 +67,6 @@ def make_game(cursor, conn, rules, user):
 def draw_card(cursor, conn, game, number_of_cards=1):
     cursor.execute(f"SELECT draw FROM games WHERE id='{game}'")
     draw=cursor.fetchall()[0][0]
-    print(f"{draw=} sent from draw_card")
     if len(draw)>=number_of_cards*2:
         cards=draw[:number_of_cards*2]
         draw=draw[number_of_cards*2:]
@@ -84,14 +78,12 @@ def draw_card(cursor, conn, game, number_of_cards=1):
 def check_if_player_is_in_game(cursor, conn, game, player):
     cursor.execute(f'SELECT * FROM hands WHERE game_id={game} AND username="{player}"')
     data=cursor.fetchall()
-    print(f"{data=}")
     return bool(data)
 def add_player(cursor, conn, game, player): # returns game=> possibly unnecessary
     if check_if_player_is_in_game(cursor, conn, game, player):
         return "error 409"
     cursor.execute(f'SELECT number_of_players, players FROM games WHERE id="{game}"')
     data=cursor.fetchall()[0]
-    print(f"{data=} sent from add_player")
     number_of_players=data[0]
     players=data[1]
     hand=draw_card(cursor, conn, game, number_of_cards=7)
