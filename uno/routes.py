@@ -1,7 +1,9 @@
 from flask import Blueprint, render_template, send_from_directory, request, redirect
 from .db import *
+from json import loads
 from flask_login import login_required, current_user
 uno_bp = Blueprint("uno", __name__)
+from .socketing import transmit
 
 special_cards={"u0":"blank","u1":"wild","u2":"N/A","u3":"N/A","u4":"draw4","u5":"N/A","u6":"N/A","u7":"N/A","u8":"N/A","u9":"N/A"}
 @uno_bp.route("/newgame/<rules>", methods=["GET", "POST"])
@@ -36,10 +38,20 @@ def start():
     print("start accessed")
     return render_template("create.html")
 
+@uno_bp.route("/game/<game_name>/updates", methods=["POST"])
+@login_required
+def updates(game_name):
+    data=loads(request.data.decode("utf-8"))
+    print(data)
+    if data["action"] == "player_played_a_card":
+        cards_left=player_played_card(game_name, current_user.username, data["card"], data["card_n"])
+        transmit(game_name, data["action"], current_user.username, {"card": data["card"], "card_n": data["card_n"], "cards_left": cards_left})
+    return {"a": True}
+
 #images and resources
 @uno_bp.route("/static/<anything>", methods=["GET"])
 def get(anything):
-    return send_from_directory("statics",anything)
+    return send_from_directory("statics", anything)
 @uno_bp.route("/images/<colour>/<value>.svg")
 def get_svg(colour, value):
     value=value+".svg"

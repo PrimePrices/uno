@@ -23,11 +23,12 @@ function clicked_card(e){
         console.log(e.target)
         const value = cardElem.getAttribute("data-value");
         const colour = cardElem.getAttribute("data-colour");
-        socket.emit({"action": "player_played_a_card", "card": {"value": value, "colour": colour}, "game": get_game_id()});
+        const url = new URL(window.location).pathname + "/updates"
+        fetch(url, {method: "POST", body: JSON.stringify({"action": "player_played_a_card", "card":{"value":value, "colour": colour}, "card_n": 0}), headers: {'Content-Type': 'application/json'}})
     }
 }
 
-const channel = new URL(window.location).pathname
+const channel = new URL(window.location).pathname+"/updates"
 socket = io.connect(channel);
 console.log("connected")
 console.log(socket)
@@ -46,6 +47,7 @@ function player_played_card(data){
     var cards_left=data["cards_left"]
     const div=document.getElementById(username)
     var hand=div.childNodes()[1]
+    print("card played")
 }	
 function load_player(player){
     console.log("player:", player)
