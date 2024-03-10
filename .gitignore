@@ -2,3 +2,7 @@ database.db
 .__pycache__
 pyvenv.cfg
 *.__pycache__
+*.database.db
+.vscode
+.Lib
+.Scripts
