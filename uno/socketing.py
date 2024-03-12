@@ -1,5 +1,5 @@
 #socketio
-from flask_socketio import emit, join_room, leave_room, disconnect, Namespace
+from flask_socketio import emit, join_room, leave_room, disconnect
 from flask_login import current_user
 from flask import abort
 

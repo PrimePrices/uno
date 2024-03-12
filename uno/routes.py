@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, send_from_directory, request, redirect
-from .db import *
+from .game import *
 from json import loads
 from flask_login import login_required, current_user
 uno_bp = Blueprint("uno", __name__)
@@ -9,26 +9,30 @@ special_cards={"u0":"blank","u1":"wild","u2":"N/A","u3":"N/A","u4":"draw4","u5":
 @uno_bp.route("/newgame/<rules>", methods=["GET", "POST"])
 def newGame(rules):
     user=current_user.username
-    game_name=make_game(rules, user)
-    return redirect("/uno/"+game_name)
+    game=make_game(user, rules)
+    return redirect("/uno/game/"+str(game.id))
 @uno_bp.route("/<game_name>/join/")
-def join(game):
-    if request.cookies["username"]:
-        add_player()
+def join(game_name):
+    if current_user.is_authenticated:
+        game=get_game_by_id(game_name)
+        game.add_player(current_user.username)
     return ""
 @uno_bp.route("/game/<game_name>")
 def render(game_name):
+    print("render accessed")
     return render_template("game.html")
 @uno_bp.route("/game/personalised/<game_name>/.json")
 @uno_bp.route("/game/<game_name>/personalised.json", methods=["GET"])
 def render_json_personalised(game_name):
     user = current_user.username
-    info=get_game_info_personalised(game_name, user)
+    game=get_game_by_id(game_name)
+    info=game.get_game_info_personalised(user)
     # info structure = {"id":, "rules", "number_of_players", "players": data, "next_player":, "direction":, "discard":, "draw":}
     return info
 @uno_bp.route("/game/<game_name>.json")
 def render_json(game_name):
-    info=get_game_info(game_name)
+    game=get_game_by_id(game_name)
+    info=game.get_game_info()
     # info structure = {"id":, "rules", "number_of_players", "players": data, "next_player":, "direction":, "discard":, "draw":}
     return info
     #main.games[escape(game_name)]
@@ -44,7 +48,8 @@ def updates(game_name):
     data=loads(request.data.decode("utf-8"))
     print(data)
     if data["action"] == "player_played_a_card":
-        cards_left=player_played_card(game_name, current_user.username, data["card"], data["card_n"])
+        game=get_game_by_id(game_name)
+        cards_left=game.player_played_card(current_user.username, data["card"], data["card_n"])
         transmit(game_name, data["action"], current_user.username, {"card": data["card"], "card_n": data["card_n"], "cards_left": cards_left})
     return {"a": True}
 

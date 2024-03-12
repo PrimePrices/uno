@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS hands (
   position INTEGER,
   game_id INTEGER,
   cards TEXT,
-  username INTEGER,
+  username TEXT,
   number_of_cards INT
 );
 CREATE TABLE IF NOT EXISTS games(
