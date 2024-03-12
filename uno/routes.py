@@ -19,7 +19,6 @@ def join(game_name):
     return ""
 @uno_bp.route("/game/<game_name>")
 def render(game_name):
-    print("render accessed")
     return render_template("game.html")
 @uno_bp.route("/game/personalised/<game_name>/.json")
 @uno_bp.route("/game/<game_name>/personalised.json", methods=["GET"])
@@ -39,18 +38,22 @@ def render_json(game_name):
 @login_required
 @uno_bp.route("/")
 def start():
-    print("start accessed")
     return render_template("create.html")
 
 @uno_bp.route("/game/<game_name>/updates", methods=["POST"])
 @login_required
 def updates(game_name):
     data=loads(request.data.decode("utf-8"))
-    print(data)
     if data["action"] == "player_played_a_card":
         game=get_game_by_id(game_name)
         cards_left=game.player_played_card(current_user.username, data["card"], data["card_n"])
         transmit(game_name, data["action"], current_user.username, {"card": data["card"], "card_n": data["card_n"], "cards_left": cards_left})
+    elif data["action"] == "player_drew_a_card":
+        game=get_game_by_id(game_name)
+        card=game.draw_card()
+        #db wrangling here
+        #emit_to_socketio
+    else: print(data)
     return {"a": True}
 
 #images and resources

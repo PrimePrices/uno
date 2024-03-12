@@ -18,7 +18,6 @@ def register_routes(socketio):
         print(f"recieved {json=}")
     print("routes registered for socketio")
 def transmit(game, action, user, other_details={}):
-    print(f"{action=} {user=} {other_details=}")
     if action in ["player_joined","player_said_uno", "player_left", "player_won", "player_drew_a_card", "player_reversed_direction", "players_turn", "you_won"]:
         data = {"player": user}
     elif action=="player_played_a_card":

@@ -39,7 +39,6 @@ class Game():
     def get_game_info(self):
         cursor, conn = access_db()
         hands={username: {"number_of_cards": number_of_cards, "position": position, "you": False} for username, number_of_cards, position in cursor.execute(f"SELECT username, number_of_cards, position FROM hands WHERE game_id={self.id}").fetchall()}
-        print(hands)
         conn.close()
         return {"id": self.id, 
                 "rules": self.rules, 
@@ -49,6 +48,19 @@ class Game():
                 "direction": self.direction, 
                 "discard": card_to_json(self.discard), 
                 "draw_length": len(self.draw)//2}
+    def get_game_info_personalised(self, username:str):
+        data= self.get_game_info()
+        hand = self.get_player_hand(username)
+        p:dict = data["players"]
+        data["players"][username]["you"]=True
+        data["players"][username]["hand"]=hand
+        return data
+    def get_player_hand(self, username:str):
+        cursor, conn = access_db()
+        cursor.execute(f"SELECT cards FROM hands WHERE username='{username}' AND game_id={self.id}")
+        hand = cursor.fetchone()[0]
+        conn.close()
+        return hand
     def add_player(self, username:str)->None:
         if username in self.players:
             print("player already in game")
@@ -66,43 +78,37 @@ class Game():
         cursor.execute(f"UPDATE games SET draw='{self.draw}' WHERE id={self.id}")
         conn.close()
         return cards
-    def player_played_card(self, username: str, card:dict, card_n: int):
+    def player_played_card(self, username: str, card:dict, card_n: int)->int:
         if username not in self.players:
             print("player not in game so can't play card")
             abort(414)
         hand = self.get_player_hand(username)
         card_str=json_to_card(card)
-        print(card_str)
+        
         if card_str not in hand:
             print("card not in hand")
             abort(414)
+        card_n=int(card_n)
+        print(f"{card_str=} {card_n=}")
+        if hand[card_n*2:card_n*2+2] != card_str:
+            print("invalid card position")
+            print(f"{hand[card_n*2:card_n*2+2]=}")
+            abort(418)
         cursor, conn = access_db()
-        cursor.execute(f"UPDATE hands SET cards='{hand.replace(card_str, "")}' WHERE game_id={self.id} AND username='{username}'")
+        cursor.execute(f"UPDATE hands SET cards='{hand.replace(card_str, "")}', number_of_cards=number_of_cards-1 WHERE game_id={self.id} AND username='{username}'")
         conn.commit()
+        cards_left=cursor.execute(f"SELECT number_of_cards FROM hands WHERE game_id={self.id} AND username='{username}'").fetchone()[0]
         conn.close()
-    def get_game_info_personalised(self, username:str):
-        print(f"{username=}")
-        data= self.get_game_info()
-        print(f"{data=}")
-        hand = self.get_player_hand(username)
-        p:dict = data["players"]
-        data["players"][username]["you"]=True
-        data["players"][username]["hand"]=hand
-        print(data)
-        return data
-    def get_player_hand(self, username:str):
-        cursor, conn = access_db()
-        cursor.execute(f"SELECT cards FROM hands WHERE username='{username}' AND game_id={self.id}")
-        hand = cursor.fetchone()
-        conn.close()
-        return hand
+        return cards_left
+
 
 def get_game_by_id(id) -> Game:
     #this needs to also return none if the game doesn't exist
     cursor, conn = access_db()
     cursor.execute(f"SELECT * FROM games WHERE id={id}")
     game = cursor.fetchone()
-    print(game)
+    if not game:
+        abort(404)
     game=Game(game[0], game[1], game[2], game[3], game[4], game[5], game[6], game[7])
     conn.close()
     return game

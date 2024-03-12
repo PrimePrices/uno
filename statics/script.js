@@ -24,7 +24,13 @@ function clicked_card(e){
         const value = cardElem.getAttribute("data-value");
         const colour = cardElem.getAttribute("data-colour");
         const url = new URL(window.location).pathname + "/updates"
-        fetch(url, {method: "POST", body: JSON.stringify({"action": "player_played_a_card", "card":{"value":value, "colour": colour}, "card_n": 0}), headers: {'Content-Type': 'application/json'}})
+        const hand_list=Array.from(cardElem.parentNode.parentNode.childNodes)
+        console.log(hand_list)
+        for (const i in hand_list){
+            if (hand_list[i]===cardElem.parentNode){var position=i}
+        }
+        console.log("position=", position)
+        fetch(url, {method: "POST", body: JSON.stringify({"action": "player_played_a_card", "card":{"value":value, "colour": colour}, "card_n": position}), headers: {'Content-Type': 'application/json'}})
     }
 }
 
@@ -50,7 +56,6 @@ function player_played_card(data){
     print("card played")
 }	
 function load_player(player){
-    console.log("player:", player)
     const elem = document.createElement("div");
     elem.setAttribute("data-you", player["you"])
     elem.className="player";
@@ -63,12 +68,14 @@ function load_player(player){
     elem.append(cards)
     cards.id="player-hand"
     hand=[]
-    if (!("hand" in player)){for(i=0; i<player["number_of_cards"]; i++){hand.push(blank)} 
+    if (!("hand" in player)){
+        for(i=0; i<player["number_of_cards"]; i++){hand.push(blank)} 
     } else {
         for(i=0; i<player["number_of_cards"]*2; i=i+2){
-            console.log(player["hand"], i)
+            console.log(player["hand"], i, player["hand"][i], player["hand"][i+1])
             colour={r:"red", y:"yellow", g:"green", b:"blue", u:"none"}[player["hand"][i]]
             value={1:1,2:2,3:3,4:4,5:5,6:6,7:7,8:8,9:9,0:0,r:"reverse",d:"draw2", s:"skip"}[player["hand"][i+1]]
+            console.log({colour: colour, value:value})
             hand.push({colour:colour, value:value})
         }
     }
@@ -114,11 +121,14 @@ window.onload = async function(){
     var players=info["players"]
     console.log(players)
     const opponents=document.getElementById("opponents")
-    for (const i in players){
-        if (!players[i]["you"]){
-            opponents.appendChild(load_player(players[i]))
+    for (var key in players){
+        players[key]["username"]=key
+        console.log(key, players[key])
+        if (!players[key]["you"]){
+            opponents.appendChild(load_player(players[key]))
+        } else {
+            document.getElementById("myHand").appendChild(load_player(players[key]))
         }
     }
     render_game_state(info.draw_length, info.discard)
-    document.getElementById("myHand").appendChild(load_player(info["you"]))
 }
