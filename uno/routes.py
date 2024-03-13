@@ -47,7 +47,7 @@ def updates(game_name):
     if data["action"] == "player_played_a_card":
         game=get_game_by_id(game_name)
         cards_left=game.player_played_card(current_user.username, data["card"], data["card_n"])
-        transmit(game_name, data["action"], current_user.username, {"card": data["card"], "card_n": data["card_n"], "cards_left": cards_left})
+        transmit(str(game_name), data["action"], current_user.username, {"card": data["card"], "card_n": data["card_n"], "cards_left": cards_left})
     elif data["action"] == "player_drew_a_card":
         game=get_game_by_id(game_name)
         card=game.draw_card()
@@ -70,6 +70,6 @@ def get_svg(colour, value):
 @uno_bp.route("/favicon.ico")
 def favicon():
     return send_from_directory("uno/images/blue", "reverse.svg")
-@uno_bp.error_handler(404)
+@uno_bp.app_errorhandler(404)
 def not_found(error):
     return send_from_directory("uno/images/none", "404.svg")

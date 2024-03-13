@@ -12,7 +12,7 @@ function load_card({colour, value}) {
     return card;
 }
 function get_game_id(){
-    return new URL(window.location).pathname
+    return new URL(window.location).pathname.split("/")[-1]
 }
 
 function clicked_card(e){
@@ -35,9 +35,11 @@ function clicked_card(e){
 }
 
 const channel = new URL(window.location).pathname+"/updates"
+//const channel = new URL(window.location).hostname+"/uno"
 socket = io.connect(channel);
 console.log("connected")
-console.log(socket)
+console.log(socket, channel)
+socket.emit("join_room", {room: get_game_id()})
 socket.on('update_game_state', function(data) {
     if (data.action=="player_played_a_card"){
         player_played_card(data);

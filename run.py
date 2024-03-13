@@ -15,7 +15,7 @@ app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=30)
 init_uno_app(app, socketio)
 init_admin_app(app)
 init_auth_app(app)
-
+print(socketio.__repr__())
 def has_no_empty_params(rule)->bool:
     defaults = rule.defaults if rule.defaults is not None else ()
     arguments = rule.arguments if rule.arguments is not None else ()

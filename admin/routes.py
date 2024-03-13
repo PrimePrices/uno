@@ -1,4 +1,4 @@
-from flask import Blueprint
+from flask import Blueprint, abort
 from flask_login import login_required, current_user
 admin_usernames=["admin"]
 admin_bp= Blueprint("admin", __name__, url_prefix="/admin")
@@ -16,13 +16,15 @@ def admin_only():
 @admin_bp.route("/dashboard")
 def dashboard():
     admin_only()
-    return "dashboard
-@admin_bp.route("/uno/view_game/<game_name:str>)
+    return "dashboard"
+
+
+@admin_bp.route("/uno/view_game/<game_name>")
 def view_game(game_name):
     return "game"
-@admin_bp.route("/user/<username:str>)
+@admin_bp.route("/user/<username>")
 def view_users(username):
     return "user"
-@admin_bp.route("/user/<username:str>/change_password)
+@admin_bp.route("/user/<username>/change_password")
 def change_password(user):
     return "changed"

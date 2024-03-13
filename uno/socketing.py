@@ -4,6 +4,8 @@ from flask_login import current_user
 from flask import abort
 
 
+
+
 def authenticate_only(f): # wrapper
     def wrapped(*args, **kwargs):
         if not current_user.is_authenticated:
@@ -12,7 +14,17 @@ def authenticate_only(f): # wrapper
             return f(*args, **kwargs)
     return wrapped
 def register_routes(socketio):
-    
+    @socketio.on("connect")
+    def connect():
+        print("user connected")
+    @socketio.on("join")
+    def handle_join_room(data):
+        print("user joined room " + data["room"]) 
+        join_room(data["room"])
+    @socketio.on("leave")
+    def handle_leave_room(data):
+        print("user left room " + data["room"])
+        leave_room(data["room"])
     @socketio.on("message")
     def message(json: dict) -> None:
         print(f"recieved {json=}")
