@@ -67,3 +67,6 @@ def get_svg(colour, value):
 @uno_bp.route("/favicon.ico")
 def favicon():
     return send_from_directory("uno/images/blue", "reverse.svg")
+@uno_bp.error_handler(404)
+def not_found(error):
+    return send_from_directory("uno/images/none", "404.svg")
