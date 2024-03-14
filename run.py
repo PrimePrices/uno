@@ -15,7 +15,6 @@ app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=30)
 init_uno_app(app, socketio)
 init_admin_app(app)
 init_auth_app(app)
-print(socketio.__repr__())
 def has_no_empty_params(rule)->bool:
     defaults = rule.defaults if rule.defaults is not None else ()
     arguments = rule.arguments if rule.arguments is not None else ()
@@ -27,8 +26,7 @@ class ExcludeRoutesFilter(logging.Filter):
             "GET /uno/images/",
             "GET /uno/favicon.ico",
             "GET /uno/static/",
-            "GET /static/"
-        ]
+            "GET /static/"]
         for i in excluded_strings:
             if i in record.getMessage():
                 return False
@@ -37,9 +35,7 @@ logger.addFilter(ExcludeRoutesFilter())
 @app.route("/site-map")
 def site_map()->list:
     links = []
-    for rule in app.url_map.iter_rules():
-        # Filter out rules we can't navigate to in a browser
-        # and rules that require parameters
+    for rule in app.url_map.iter_rules():  
         if "GET" in rule.methods and has_no_empty_params(rule):
             url = url_for(rule.endpoint, **(rule.defaults or {}))
             links.append((url, rule.endpoint))
@@ -54,20 +50,23 @@ def index():
 def get(anything):
     return send_from_directory("statics", anything)
 @app.route("/login")
-def a_1():
+def Login():
     return login()
 @app.route("/logout")
-def a_2():
+def Logout():
     return logout()
 @app.route("/profile")
-def a_3():
+def Profile():
     return profile()
 @app.route("/sign-up")
-def a_4():
+def SignUp():
     return sign_up()
 
 #errors
 @app.route("/brew-coffee")
+@app.route("/coffee")
+@app.route("/coffee_pot")
+@app.route("/BrewCoffee")
 def Coffee():
     abort(418)
 @app.route("/lake")
