@@ -14,7 +14,13 @@
         <a href="/uno" class="uno-link">Uno</a>
         <a href="/contact">Contact</a>
         <a href="/about">About</a>
+        {% block links %}{% endblock %}
+        {% if logged_in%}
         <a href="/login">Login</a>
+        <a href="/sign_up">Sign Up</a>
+        {% else %}
+        <a href ="/profile">Profile</a>
+        {% endif %}
     </div>
     <div id="header-underlap">random text  nobody is going to see here</div>
     <div id="content">{% block content %}{% endblock %}</div> 
