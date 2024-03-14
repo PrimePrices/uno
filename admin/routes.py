@@ -19,14 +19,16 @@ def dashboard():
     return "dashboard"
 @admin_bp.route("/uno/view_game/<game_name>")
 def view_game(game_name):
+    admin_only()
     game = get_game_by_id(game_name)
     data = game.get_game_info()
     for i in game.players:
         data[i]["hand"] = game.get_player_hand(i)
-    return "game"
+    return data
 @admin_bp.route("/user/<username>")
 def view_users(username):
-    return "user"
-@admin_bp.route("/user/<username>/change_password")
-def change_password(user):
-    return "changed"
+    conn = sqlite3.connect("authentication.db")
+    cursor = conn.cursor()
+    data = cursor.execute(f"SELECT * FROM users WHERE username='{username}').fetchone()
+    return data
+@admin
