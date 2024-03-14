@@ -1,4 +1,4 @@
-from flask import Blueprint, abort
+from flask import Blueprint, abort, request
 from flask_login import login_required, current_user
 admin_usernames=["admin"]
 admin_bp= Blueprint("admin", __name__, url_prefix="/admin")
@@ -27,8 +27,13 @@ def view_game(game_name):
     return data
 @admin_bp.route("/user/<username>")
 def view_users(username):
-    conn = sqlite3.connect("authentication.db")
+    conn = sqlite3.connect("authentication/database.db")
     cursor = conn.cursor()
-    data = cursor.execute(f"SELECT * FROM users WHERE username='{username}').fetchone()
+    data = cursor.execute(f"SELECT * FROM users WHERE username='{username}'").fetchone()
     return data
-@admin
+@admin_bp.route("/user/<username>/change_value/<attribute>", methods=["POST"])
+def change_value(attribute, username):
+    conn = sqlite3.connect("authentication/database.db")
+    cursor = conn.cursor()
+    value = request.get("value")
+    cursor.execute(f"UPDATE {attribute}='{value}' FROM users WHERE username='{username}'")
