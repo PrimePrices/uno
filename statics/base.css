@@ -8,7 +8,7 @@ body {
 
 .header{
   height: auto;
-  position:fixed;
+  position:sticky;
   background-color: rgb(89, 89, 206);
   top: 0;
   left:0;
