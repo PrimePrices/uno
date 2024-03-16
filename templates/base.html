@@ -15,14 +15,15 @@
         <a href="/contact">Contact</a>
         <a href="/about">About</a>
         {% block links %}{% endblock %}
-        {% if logged_in%}
-        <a href="/login">Login</a>
-        <a href="/sign_up">Sign Up</a>
+        {% if not logged_in %}
+        <a href="/login"><img src = "/images/login.svg" alt="Login" class= "header_img"></a>
+        <a href="/sign_up"><img src = "/images/signup.svg" alt="Sign Up" class= "header_img"></a>
         {% else %}
         <a href ="/profile">Profile</a>
-        <a href ="/sign_out"><img href=sign_out.svg></a>
+        <a href ="/logout"><img src="/images/logout.svg" alt="Log Out" class= "header_img"></a>
         {% endif %}
     </div>
+    <br>
     <div id="content">{% block content %}{% endblock %}</div> 
     <div id="footer">&copy; Copyright 2024 by me</div>
 </html>

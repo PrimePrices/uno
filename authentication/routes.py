@@ -1,5 +1,5 @@
 from flask import render_template, redirect, request, flash, Blueprint
-from flask_login import login_user, current_user
+from flask_login import login_user, current_user, logout_user
 from .models import login_manager, connect_db, User, load_user
 from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
@@ -8,13 +8,14 @@ auth_bp = Blueprint('auth', __name__, static_folder="uno/statics", template_fold
 
 @auth_bp.route("/logout")
 def logout():
-    return "Logout"
+    logout_user()
+    return redirect(request.referrer or "/login")
 @auth_bp.route("/profile")
 def profile():
     return "profile"
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
-    if current_user.is_authenticated():
+    if current_user.is_authenticated:
         return redirect("/profile")
     if request.method=="POST":
         name=request.form.get("username")

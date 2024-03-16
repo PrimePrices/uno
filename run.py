@@ -20,6 +20,11 @@ def has_no_empty_params(rule)->bool:
     arguments = rule.arguments if rule.arguments is not None else ()
     return len(defaults) >= len(arguments)
 logger=logging.getLogger("werkzeug")
+
+@app.context_processor
+def inject_variables():
+    return {"logged_in":current_user.is_authenticated} 
+
 class ExcludeRoutesFilter(logging.Filter):
     def filter(self, record):
         excluded_strings = [
@@ -43,8 +48,8 @@ def site_map()->list:
     # links is now a list of url, endpoint tuples
 @app.route("/")
 @app.route("/index")
-@login_required
 def index():
+    print(f"{current_user.is_authenticated=}")
     return render_template("base.html")
 @app.route("/static/<anything>")
 def get(anything):
@@ -61,6 +66,10 @@ def Profile():
 @app.route("/sign-up")
 def SignUp():
     return sign_up()
+@app.route("/images/<anything>.svg")
+def svg_symbol(anything):
+    print(anything)
+    return send_from_directory("images", anything+".svg")
 
 #errors
 @app.route("/brew-coffee")

@@ -34,7 +34,7 @@ function clicked_card(e){
     }
 }
 
-const channel = new URL(window.location).pathname+"/updates"
+const channel = new URL(window.location).hostname
 //const channel = new URL(window.location).hostname+"/uno"
 socket = io.connect(channel);
 console.log("connected")

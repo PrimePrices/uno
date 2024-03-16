@@ -2,7 +2,7 @@ from flask import Blueprint, abort, request
 from flask_login import login_required, current_user
 admin_usernames=["admin"]
 admin_bp= Blueprint("admin", __name__, url_prefix="/admin")
-from uno.game import game, get_game_by_id
+from uno.game import Game, get_game_by_id
 
 def admin_only():
     if not current_user.authenticated:
