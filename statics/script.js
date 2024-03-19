@@ -12,52 +12,52 @@ function load_card({colour, value}) {
     return card;
 }
 function get_game_id(){
-    return new URL(window.location).pathname.split("/")[-1]
+    console.log(new URL(window.location).pathname.split("/"))
+    console.log(new URL(window.location).pathname.split("/")[-1])
+    return new URL(window.location).pathname.split("/")[3]
 }
 
 function clicked_card(e){
     console.log(e)
     let cardElem= e.target
-    if (cardElem.parentNode.parentNode.parentNode.getAttribute("data-you")=="true"){
+    if (cardElem.parentNode.parentNode.getAttribute("data-you")=="true"){
         console.log("valid")
         console.log(e.target)
         const value = cardElem.getAttribute("data-value");
         const colour = cardElem.getAttribute("data-colour");
         const url = new URL(window.location).pathname + "/updates"
-        const hand_list=Array.from(cardElem.parentNode.parentNode.childNodes)
+        const hand_list=Array.from(cardElem.parentNode.children)
+        console.log(colour, value)
         console.log(hand_list)
         for (const i in hand_list){
-            if (hand_list[i]===cardElem.parentNode){var position=i}
+            if (hand_list[i]===cardElem){var position=i}
         }
         console.log("position=", position)
         fetch(url, {method: "POST", body: JSON.stringify({"action": "player_played_a_card", "card":{"value":value, "colour": colour}, "card_n": position}), headers: {'Content-Type': 'application/json'}})
     }
 }
 
-const channel = new URL(window.location).hostname
-//const channel = new URL(window.location).hostname+"/uno"
-socket = io.connect(channel);
-console.log("connected")
-console.log(socket, channel)
-socket.emit("connect")
-socket.emit("join", {room: get_game_id()})
+function add_event_listener_to_cards(){
+    console.log("adding event listener to cards")
+    for (const i in document.getElementsByClassName("card")){
+        document.getElementsByClassName("card")[i].addEventListener("click", clicked_card)}
+} 
 
-socket.on('update_game_state', function(data) {
-    if (data.action=="player_played_a_card"){
-        player_played_card(data);
-    }else if (data.action=="players_turn"){
-        console.log(data.player, "'s turn");
-    }
-        //document.getElementById('gameState').innerText = data.game_state;
-});
 function player_played_card(data){
-    var username = data["username"]
+    console.log(data)
+    var username = data["player"]
     var card = data["card"]
     var card_n = data["card_n"]
     var cards_left=data["cards_left"]
+    console.log(username, card, card_n, cards_left)
     const div=document.getElementById(username)
-    var hand=div.childNodes()[1]
-    print("card played")
+    console.log(div)
+    var hand=div.children[1]
+    console.log(div, hand)
+    card=hand.children[card_n]
+    console.log(card)
+    console.log("card played")
+    hand.removeChild(card)
 }	
 function load_player(player){
     const elem = document.createElement("div");
@@ -117,8 +117,37 @@ function display_art(){
     }
 }
 
+const channel = new URL(window.location).hostname
+//const channel = new URL(window.location).hostname+"/uno"
+const socket = io.connect(channel+":5000" );
+socket.port=window.port
+socket.connect()
+console.log(socket)
+const room=get_game_id()
+console.log(room)
+socket.emit("join", {room: get_game_id()})
+socket.on("connect", function(){
+    console.log("connected")
+    console.log(socket, channel)
+})
+socket.on("disconnect", function(){
+    console.log("disconnected")
+})
+
+socket.on('update_game_state', function(data) {
+    if (data.action=="player_played_a_card"){
+        console.log("recieved!!")
+        player_played_card(data);
+    }else if (data.action=="players_turn"){
+        console.log(data.player, "'s turn");
+    }else{
+        console.log("misc", data)
+    }
+        //document.getElementById('gameState').innerText = data.game_state;
+});
 
 window.onload = async function(){
+    add_event_listener_to_cards()
     let response = await fetch((new URL(window.location)).pathname+"/personalised.json")
     var info = await response.json()
     console.log(info)

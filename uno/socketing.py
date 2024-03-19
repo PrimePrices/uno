@@ -14,9 +14,11 @@ def authenticate_only(f): # wrapper
             return f(*args, **kwargs)
     return wrapped
 def register_routes(socketio):
+    print("registering socketio routes")
     @socketio.on("connect")
     def connect():
         print("user connected")
+        return True
     @socketio.on("join")
     def handle_join_room(data):
         print("user joined room " + data["room"]) 
@@ -46,4 +48,4 @@ def transmit(game, action, user, other_details={}):
         abort(414)
     data["action"]=action
     print(f"emmiting {data=} to {game=} on /uno/{game}/updates")
-    emit('update_game_state', data, namespace=f'/uno/{game}/updates', to=game)
+    emit('update_game_state', data, namespace="/", to=game)

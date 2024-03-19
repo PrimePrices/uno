@@ -21,7 +21,7 @@ def join(game_name):
 def render(game_name):
     game=get_game_by_id(game_name)
     if game:
-        return render_template("game.html", data=game.get_info())
+        return render_template("game.html.jinja", data=game.get_game_info_personalised(current_user.username))
     else:
         abort(404)
 @uno_bp.route("/game/personalised/<game_name>/.json")

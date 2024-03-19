@@ -24,7 +24,6 @@ logger=logging.getLogger("werkzeug")
 @app.context_processor
 def inject_variables():
     return {"logged_in":current_user.is_authenticated} 
-
 class ExcludeRoutesFilter(logging.Filter):
     def filter(self, record):
         excluded_strings = [
@@ -100,4 +99,4 @@ def not_found(e):
         return send_from_directory("uno/images/none", "404.svg")
 """
 if __name__ == '__main__':
-    socketio.run(app)
+    socketio.run(app, use_reloader=True, log_output=True, port=5000)
