@@ -39,7 +39,9 @@ const channel = new URL(window.location).hostname
 socket = io.connect(channel);
 console.log("connected")
 console.log(socket, channel)
-socket.emit("join_room", {room: get_game_id()})
+socket.emit("connect")
+socket.emit("join", {room: get_game_id()})
+
 socket.on('update_game_state', function(data) {
     if (data.action=="player_played_a_card"){
         player_played_card(data);
