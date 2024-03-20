@@ -135,15 +135,21 @@ socket.on("disconnect", function(){
 })
 
 socket.on('update_game_state', function(data) {
-    if (data.action=="player_played_a_card"){
-        console.log("recieved!!")
-        player_played_card(data);
-    }else if (data.action=="players_turn"){
-        console.log(data.player, "'s turn");
-    }else{
-        console.log("misc", data)
+    switch(data.action) {
+        case "player_played_a_card:
+            console.log("recieved!!")
+            player_played_card(data);
+            break;
+        case "players_turn":
+            console.log(data.player, "'s turn");
+            break;
+        case "other:
+            console.log("misc", data)
+            break;
+        default:
+            console.log("misc", data)
+            break;
     }
-        //document.getElementById('gameState').innerText = data.game_state;
 });
 
 window.onload = async function(){
