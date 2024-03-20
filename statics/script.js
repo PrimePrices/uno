@@ -1,5 +1,4 @@
 blank={colour:"none", value:"back"}
-
 function load_card({colour, value}) {
     const card = document.createElement("div");
     card.className = "card";
@@ -12,11 +11,8 @@ function load_card({colour, value}) {
     return card;
 }
 function get_game_id(){
-    console.log(new URL(window.location).pathname.split("/"))
-    console.log(new URL(window.location).pathname.split("/")[-1])
     return new URL(window.location).pathname.split("/")[3]
 }
-
 function clicked_card(e){
     console.log(e)
     let cardElem= e.target
@@ -33,14 +29,21 @@ function clicked_card(e){
             if (hand_list[i]===cardElem){var position=i}
         }
         console.log("position=", position)
-        fetch(url, {method: "POST", body: JSON.stringify({"action": "player_played_a_card", "card":{"value":value, "colour": colour}, "card_n": position}), headers: {'Content-Type': 'application/json'}})
+        fetch(url, {method: "POST", 
+                    body: JSON.stringify({
+                        "action": "player_played_a_card", 
+                        "card":{"value":value, "colour": colour}, 
+                        "card_n": position}), 
+                    headers: {'Content-Type': 'application/json'}})
+    } else {
+        console.log("somethings gone wrong")
     }
-}
-
+};
 function add_event_listener_to_cards(){
     console.log("adding event listener to cards")
     for (const i in document.getElementsByClassName("card")){
-        document.getElementsByClassName("card")[i].addEventListener("click", clicked_card)}
+        document.getElementsByClassName("card")[i].addEventListener("click", clicked_card)
+    }
 } 
 
 function player_played_card(data){
@@ -59,26 +62,26 @@ function player_played_card(data){
     console.log("card played")
     hand.removeChild(card)
 }	
-function load_player(player){
+function load_player(player_data){
     const elem = document.createElement("div");
-    elem.setAttribute("data-you", player["you"])
+    elem.setAttribute("data-you", player_data["you"])
     elem.className="player";
-    elem.id=player["username"]
+    elem.id=player_data["username"]
     const name=document.createElement("div")
-    name.innerHTML=String(player.position)+") "+player["username"]
+    name.innerHTML=String(player_data.position)+") "+player_data["username"]
     name.className="player-name"
     elem.append(name)
     const cards=document.createElement("div")
     elem.append(cards)
     cards.id="player-hand"
     hand=[]
-    if (!("hand" in player)){
-        for(i=0; i<player["number_of_cards"]; i++){hand.push(blank)} 
+    if (!("hand" in player_data)){
+        for(i=0; i<player_data["number_of_cards"]; i++){hand.push(blank)} 
     } else {
-        for(i=0; i<player["number_of_cards"]*2; i=i+2){
-            console.log(player["hand"], i, player["hand"][i], player["hand"][i+1])
-            colour={r:"red", y:"yellow", g:"green", b:"blue", u:"none"}[player["hand"][i]]
-            value={1:1,2:2,3:3,4:4,5:5,6:6,7:7,8:8,9:9,0:0,r:"reverse",d:"draw2", s:"skip"}[player["hand"][i+1]]
+        for(i=0; i<player_data["number_of_cards"]*2; i=i+2){
+            console.log(player_data["hand"], i, player_data["hand"][i], player_data["hand"][i+1])
+            colour={r:"red", y:"yellow", g:"green", b:"blue", u:"none"}[player_data["hand"][i]]
+            value={1:1,2:2,3:3,4:4,5:5,6:6,7:7,8:8,9:9,0:0,r:"reverse",d:"draw2", s:"skip"}[player_data["hand"][i+1]]
             console.log({colour: colour, value:value})
             hand.push({colour:colour, value:value})
         }
@@ -133,27 +136,61 @@ socket.on("connect", function(){
 socket.on("disconnect", function(){
     console.log("disconnected")
 })
-
 socket.on('update_game_state', function(data) {
     switch(data.action) {
-        case "player_played_a_card:
-            console.log("recieved!!")
+        case "player_played_a_card":
+            //username, card, card_n, cards_left
+            console.log("recieved!!", data)
             player_played_card(data);
             break;
         case "players_turn":
+            //player
             console.log(data.player, "'s turn");
             break;
-        case "other:
-            console.log("misc", data)
+        case "player_joined":
+            //username position number_of_cards draw_length
+            const player=load_player()
+            break;
+        case "player_left":
+            //username
+            break;
+        case "player_won":
+            //username
+            break;
+        case "player_drew_a_card":
+            //username draw_length
+            break;
+        case "your_turn":
+            //none
+            break;
+        case "you_drew_a_card":
+            //username, card, draw_length
+            break;
+        case "you_won:
+            //username
+            break;
+        case "uno_challenge":
+            //from, to, timestamp
+            break;
+        case "player_said_uno":
+            //username, timestamp, number_of_cards_left
+            break;
+        case "setting_updated":
+            //new_settings
+            break;
+        case "message_in_chat":                          //maybe won't include this
+            alert(data.username, "says", data.message)
+            //username, message
             break;
         default:
-            console.log("misc", data)
+            console.log("unrecognised message:", data)
             break;
     }
 });
 
 window.onload = async function(){
     add_event_listener_to_cards()
+    /*
     let response = await fetch((new URL(window.location)).pathname+"/personalised.json")
     var info = await response.json()
     console.log(info)
@@ -170,4 +207,5 @@ window.onload = async function(){
         }
     }
     render_game_state(info.draw_length, info.discard)
+    */
 }
