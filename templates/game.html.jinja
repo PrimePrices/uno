@@ -5,9 +5,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.js"></script>
     <script src="/uno/static/script.js"></script>
 {% endblock %}
-{%block content %}
+{% block content %}
     <div id="opponents">
-        <p>{{ data }}</p>
         {% for player in data.players %}
             {% set info = data.players[player] %}
             {% if info.you == false %}
@@ -32,7 +31,14 @@
         {% endfor %}
     </div>
     <br>
-    <div id="gameState"></div>
+    <div id="gameState">
+        <div id="draw">
+            <img src="/uno/images/none/back.svg" class="card">
+        </div>
+        <div id="discard">
+            <img src="/uno/images/{{data.discard[-2]}}/{{data.discard[-1]}}.svg">
+        </div>
+    </div>
     <br>
     <div id="myHand">
         {% for player in data.players %}
