@@ -1,9 +1,9 @@
 from random import shuffle
 from flask import abort
 import sqlite3
-def card_to_json(string):
+def card_to_json(string:str) -> dict:
     return {"colour": {"g": "green", "b": "blue", "y":"yellow", "r":"red", "u": "none"}[string[0]], "value":int(string[1])}
-def json_to_card(json):
+def json_to_card(json:dict) -> str:
     return {"green": "g", "blue": "b", "yellow": "y", "red": "r", "none": "u"}[json["colour"]]+json["value"][0]
 def connect_db(function):
     def wrapper(* args, ** kwargs):
@@ -17,7 +17,7 @@ def connect_db(function):
         finally: conn.close()
         return result
     return wrapper
-def access_db():
+def access_db() -> sqlite3.Conn, sqlite3.cursor:
     conn=sqlite3.connect("uno/database.db")
     cursor=conn.cursor()
     return cursor, conn
@@ -27,18 +27,85 @@ def init_db():
         cursor.executescript(create.read())
     conn.close()
 class Game():
-    def __init__(self, id:int|str, rules:str, number_of_players:int, players:str, next_player:str, direction:int|bool, discard: str, draw: str) -> None:
+    @property
+    def rules(self):
+        cursor, conn=get_db()
+        conn.close()
+        cursor.execute(f"SELECT rules FROM games WHERE id={self.id}")
+        return conn.select_one():
+    @rules.setter
+    async def rules(self, value):
+        cursor, conn=get_db()
+        cursor.execute(f"")
+        conn.close()
+        pass
+    @property
+    def number_of_players(self):
+        cursor, conn=get_db()
+        conn.close()
+        pass
+    @number_of_players.setter
+    def number_of_players(self, value):
+        cursor, conn=get_db()
+        conn.close()
+        pass
+    @property
+    def players(self):
+        cursor, conn=get_db()
+        conn.close()
+        pass
+    @players.setter
+    def players(self, value):
+        cursor, conn=get_db()
+        conn.close()
+        pass
+    @property
+    def next_player(self):
+        cursor, conn=get_db()
+        conn.close()
+        pass
+    @next_player.setter
+    def next_player(self, value):
+        cursor, conn=get_db()
+        conn.close()
+        pass
+    @property
+    def direction(self):
+        cursor, conn=get_db()
+        conn.close()
+        pass
+    @direction.setter
+    def direction(self, value):
+        cursor, conn=get_db()
+        conn.close()
+        pass
+    @property
+    def discard(self):
+        cursor, conn=get_db()
+        conn.close()
+        pass
+    @discard.setter
+    def discard(self, value):
+        cursor, conn=get_db()
+        conn.close()
+        pass
+    @property
+    def draw(self):
+        cursor, conn=get_db()
+        conn.close()
+        pass
+    @draw.setter
+    def draw(self, value):
+        cursor, conn=get_db()
+        conn.close()
+        pass
+    def __init__(self, id:int|str) -> None:
         self.id: int=int(id)
-        self.rules: str=rules
-        self.number_of_players: int=number_of_players
-        self.players: list[str]=players.split(",")
-        self.next_player: str=next_player
-        self.direction: int=direction
-        self.discard:str=discard
-        self.draw: str=draw
-    def get_game_info(self):
+    def get_game_info(self) -> dict:
         cursor, conn = access_db()
-        hands={username: {"number_of_cards": number_of_cards, "position": position, "you": False} for username, number_of_cards, position in cursor.execute(f"SELECT username, number_of_cards, position FROM hands WHERE game_id={self.id}").fetchall()}
+        hands={username: {"number_of_cards": number_of_cards, "position": position, "you": False} 
+               for username, number_of_cards, position in 
+               cursor.execute(f"SELECT username, number_of_cards, position FROM hands WHERE game_id={self.id}").fetchall()}
         conn.close()
         return {"id": self.id, 
                 "rules": self.rules, 
@@ -49,19 +116,19 @@ class Game():
                 "discard": card_to_json(self.discard), 
                 "draw_length": len(self.draw)//2}
     def get_game_info_personalised(self, username:str):
-        data= self.get_game_info()
-        hand = self.get_player_hand(username)
+        data:dict = self.get_game_info()
+        hand:str = self.get_player_hand(username)
         p:dict = data["players"]
         data["players"][username]["you"]=True
         data["players"][username]["hand"]=hand
         return data
-    def get_player_hand(self, username:str):
+    def get_player_hand(self, username:str) -> str:
         cursor, conn = access_db()
         cursor.execute(f"SELECT cards FROM hands WHERE username='{username}' AND game_id={self.id}")
         hand = cursor.fetchone()[0]
         conn.close()
         return hand
-    def add_player(self, username:str)->None:
+    def add_player(self, username:str) -> None:
         if username in self.players:
             print("player already in game")
             abort(409)
@@ -84,7 +151,6 @@ class Game():
             abort(414)
         hand = self.get_player_hand(username)
         card_str=json_to_card(card)
-        
         if card_str not in hand:
             print("card not in hand")
             abort(414)
@@ -100,8 +166,6 @@ class Game():
         cards_left=cursor.execute(f"SELECT number_of_cards FROM hands WHERE game_id={self.id} AND username='{username}'").fetchone()[0]
         conn.close()
         return cards_left
-
-
 def get_game_by_id(id) -> Game:
     #this needs to also return none if the game doesn't exist
     cursor, conn = access_db()
@@ -122,7 +186,7 @@ def make_game(username:str, rules:str|None) -> Game:
     conn.commit()
     game = get_game_by_id(id)
     game.add_player(username)
-    """THIS NEEDS TO BE DELETED BEFOR IT ENTERS PRODUCTION!!"""
+    """THIS NEEDS TO BE DELETED BEFORE IT ENTERS PRODUCTION!!"""
     game.add_player("Ryan Kabir")
     conn.close()
     return game
