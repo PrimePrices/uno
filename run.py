@@ -22,7 +22,7 @@ def has_no_empty_params(rule)->bool:
 logger=logging.getLogger("werkzeug")
 
 @app.context_processor
-def inject_variables():
+def inject_variables(): 
     return {"logged_in":current_user.is_authenticated} 
 class ExcludeRoutesFilter(logging.Filter):
     def filter(self, record):
