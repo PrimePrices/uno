@@ -1,8 +1,19 @@
+# Ignore Python cache files
 **/__pycache__
+
+# Ignore virtual environment configuration
 pyvenv.cfg
+
+# Ignore database files
 */database.db
+
+# Ignore Visual Studio Code settings
 .vscode/
+
+# Ignore Python library files
 .Lib/
 .Scripts/
+
+# Ignore specific file types
 *.cpy
 *.db
