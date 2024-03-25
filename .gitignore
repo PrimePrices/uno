@@ -15,5 +15,5 @@ pyvenv.cfg
 .Scripts/
 
 # Ignore specific file types
-*.cpy
+*.pyc
 *.db
