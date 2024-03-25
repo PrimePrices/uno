@@ -166,7 +166,7 @@ socket.on('update_game_state', function(data) {
         case "you_drew_a_card":
             //username, card, draw_length
             break;
-        case "you_won:
+        case "you_won":
             //username
             break;
         case "uno_challenge":

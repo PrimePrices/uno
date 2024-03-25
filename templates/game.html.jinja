@@ -1,10 +1,12 @@
-{% extends "base.html" %}
+{% extends "base.html.jinja" %}
 {% block statics %}
     <title>Uno</title>
     <link rel="stylesheet" type ="text/css" href="/static/game_style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.js"></script>
     <script src="/uno/static/script.js"></script>
 {% endblock %}
+{% set colour_lookup = ({"r": "red", "y": "yellow", "g": "green", "b": "blue", "u": "none"}) %}
+{% set value_lookup =  ({"0":0,"1":1,"2":2,"3":3,"4":4,"5":5,"6":6,"7":7,"8":8,"9":9,"d":"draw2","s":"skip","r":"reverse"}) %}
 {% block content %}
     <div id="opponents">
         {% for player in data.players %}
@@ -14,15 +16,14 @@
                     <div id="player-name">{{ player }}</div>
                     <div id="player-hand">
                         {% if info.hand %}
-                            {% set colour_lookup = ({"r": "red", "y": "yellow", "g": "green", "b": "blue"}) %}
                             {% for card in range(info.hand.__len__()//2) %}
                                 {% set colour = colour_lookup[info.hand[card*2]] %}
                                 {% set value = info.hand[card*2+1] %}
-                                <img class = "card" src="/uno/images/{{colour}}/{{value}}.svg" data-value={{value}} data-colour={{colour}}>
+                                <img class = "card" src="/uno/images/{{colour}}/{{value}}.svg" data-value={{value}} data-colour={{colour}} class="card">
                             {% endfor %}
                         {% else %}
                             {% for i in range(info.number_of_cards) %}
-                                <img src="/uno/images/none/back.svg" data-colour="none" data-value="back">
+                                <img src="/uno/images/none/back.svg" data-colour="none" data-value="back" class="card">
                             {% endfor %}
                         {% endif %}
                     </div>
@@ -33,10 +34,11 @@
     <br>
     <div id="gameState">
         <div id="draw">
-            <img src="/uno/images/none/back.svg" class="card">
+            <img src="/uno/images/none/back.svg" class="card clickable">
         </div>
         <div id="discard">
-            <img src="/uno/images/{{data.discard[-2]}}/{{data.discard[-1]}}.svg">
+            {{data.discard}}
+            <img src="/uno/images/{{data.discard.colour}}/{{data.discard.value}}.svg" class="card">
         </div>
     </div>
     <br>
@@ -47,12 +49,10 @@
                 <div class="player" data-you="true" id="{{ player }}">
                     <div id="player-name">{{ player }}</div>
                     <div id="player-hand">
-                        {% set colour_lookup = ({"r": "red", "y": "yellow", "g": "green", "b": "blue"}) %}
                         {% for card in range(info.hand.__len__()//2) %}
-                            {{info.hand[card*2]}}
                             {% set colour = colour_lookup[info.hand[card*2]] %}
-                            {% set value = info.hand[card*2+1] %}
-                            <img class = "card" src="/uno/images/{{colour}}/{{value}}.svg" data-value={{value}} data-colour={{colour}}>
+                            {% set value = value_lookup[info.hand[card*2+1]] %}
+                            <img class = "card clickable" src="/uno/images/{{colour}}/{{value}}.svg" data-value={{value}} data-colour={{colour}}>
                         {% endfor %}
                     </div>
                 </div>

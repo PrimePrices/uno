@@ -49,10 +49,13 @@ def site_map()->list:
 @app.route("/index")
 def index():
     print(f"{current_user.is_authenticated=}")
-    return render_template("base.html")
+    return render_template("base.html.jinja")
 @app.route("/static/<anything>")
 def get(anything):
     return send_from_directory("statics", anything)
+@app.route("/images/links/<anything>.svg")
+def get_svg(anything):
+    return send_from_directory("images/links", anything+".svg")
 @app.route("/login")
 def Login():
     return login()

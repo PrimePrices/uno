@@ -42,7 +42,7 @@ def render_json(game_name):
 @login_required
 @uno_bp.route("/")
 def start():
-    return render_template("create.html")
+    return render_template("create.html.jinja")
 
 @uno_bp.route("/game/<game_name>/updates", methods=["POST"])
 @login_required

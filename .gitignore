@@ -1,8 +1,8 @@
-database.db
-.__pycache__/
+**/__pycache__
 pyvenv.cfg
-*.__pycache__/
-*.database.db
+*/database.db
 .vscode/
 .Lib/
 .Scripts/
+*.cpy
+*.db
