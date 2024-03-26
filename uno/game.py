@@ -27,102 +27,20 @@ def init_db():
     with open("uno/create.sql", "r") as create:
         cursor.executescript(create.read())
     conn.close()
-class CSVList(list):
-    __slots__=["data", "table", "entry_uid", "column", "data_type"]
-    def __init__(self, iterable, table=None, entry_uid=None, column=None, data_type=None):
-        self.table=table
-        self.entry_uid=entry_uid
-        self.column=column
-        self.data_type=data_type
-        data=",".join(iterable)
-        conn, cursor=access_db()
-        cursor.execute(f"UPDATE {self.table} VALUES ({self.column}) TO {data} WHERE id={self.entry_uid}")
-        conn.commit()
-        conn.close()
-    def cast_list(self, data):
-        if self.data_type==None:
-            return data
-        a=[]
-        for i in data:
-            try:
-                a.append(self.data_type(i))
-            except:
-                raise("Expected value that could be cast into {self.data_type}. Instead got {i} of type={type(i)}")
-        return a
-    def __getitem__(self, index):#
-        self.get_list()[index]
-        return data[index]
-    def get_list():
-        cursor, conn=access_db() 
-        data=cursor.execute(f"SELECT {self.column} FROM {self.table} WHERE id={self.entry_uid}").fetchone()[0]
-        data=data.split(",")
-        data=self.cast_list(data)
-        conn.close()
-        return data
-    def set_list(l:list):
-        l=",".join(list)
-        cursor, conn=access_db() 
-        cursor.execute(f"UPDATE {self.table} SET {self.column}='{l}' WHERE id={self.entry_uid}")
-        conn.close()
-    def append(self, value):
-        data=self.get_list()
-        data.append(value)
-        self.set_list(data)
-    def pop(self, index):
-        data=self.get_list()
-        r=data.pop(value)
-        self.set_list(data)
-        return r
-    def __setitem__(self, index, item):
-        if type(item)==str and "," in item:
-            raise("Text cannot contain a comma")
-        try:
-            item=str(item)
-        except:
-            raise("Item {item} of type {type(item} couldn't be converted to a string")
-        data=self.get_list()
-        data[index]=item
-        self.set_list(data)
-    def __str__(self):
-        return str(self.get_list())
-class Player():
-    def __init__(self, username:str, game_id:int, id:int):
-        self.username=username
-        self.id=id
-        self.game_id=game_id
-    def _update_db(self, attribute:str, value:str):
-        cursor, conn= access_db()
-        cursor.execute(f"UPDATE players SET {attribute}='{value}' WHERE username='{self.username} AND game_id={self.game_id}")
-        conn.commit()
-        conn.close()
-    def _get_db_attribute(self, attribute:str):
-        cursor, conn= access_db()
-        value=cursor.execute(f"SELECT {attribute} FROM hands WHERE username='{self.username}' AND game_id={self.game_id}").fetchone()[0]
-        conn.close()
-        return value
-    @staticmethod
-    def _database_property(attribute:str):
-        def getter(self) -> str:
-            value= self._get_db_attribute(attribute)
-            return value
-        def setter(self, value:str):
-            self._update_db(attribute, value)
-        return property(getter, setter)
-    position = _database_property("position")
-    cards= _database_property("cards")
-    number_of_cards = _database_property("number_of_cards")
-class Game():
+
+class DBClass:
+    table="default"
     def _update_db(self, attribute:str, value:str|list):
         cursor, conn= access_db()
         print(f"updating {attribute} to {value}")
         if type(value)==list:
             value=",".join(value)
-        cursor.execute(f"UPDATE games SET {attribute}='{value}' WHERE id={self.id}")
+        cursor.execute(f"UPDATE {self.table} SET {attribute}='{value}' WHERE id={self.id}")
         conn.commit()
         conn.close()
     def _get_db_attribute(self, attribute:str):
         cursor, conn= access_db()
-        value=cursor.execute(f"SELECT {attribute} FROM games WHERE id={self.id}").fetchone()[0]
+        value=cursor.execute(f"SELECT {attribute} FROM {self.table} WHERE id={self.id}").fetchone()[0]
         conn.close()
         return value
     @staticmethod
@@ -136,19 +54,90 @@ class Game():
             self._update_db(attribute, value)
         return property(getter, setter)
     @staticmethod
-    def _database_list(attribute:str, data_type=None):
+    def _database_list(attribute:str, data_type=None) -> property:
         def getter(self):
-            """NEED A WAY TO FETCH AN ALREADY CREATED LIST"""
-            value=CSVList("")
+            value=CSVList(table="games", entry_uid=self.id, column=attribute, data_type=data_type)
+            return value
         def setter(self, iterable:list):
-            CSVList(iterable, table="game", entry_uid=self.id, column="attribute", data_type=data_type)
-    number_of_players = _database_property("number_of_players")
-    next_player = _database_property("next_player")
-    direction = _database_property("direction")
-    discard = _database_property("discard")
-    draw = _database_property("draw", array=True)
-    rules= _database_property("rules", array=True)
-    players = CSVList("players", array=True)# iterable, table=None, entry_uid=None, column=None, data_type=None
+            CSVList(iterable=iterable, table="games", entry_uid=self.id, column=attribute, data_type=data_type)
+        return property(getter, setter)
+
+class CSVList(list):
+    __slots__=["data", "table", "entry_uid", "column", "data_type"]
+    def __init__(self, iterable=None, table=None, entry_uid=None, column=None, data_type=None):
+        self.table=table
+        self.entry_uid=entry_uid
+        self.column=column
+        self.data_type=data_type
+        if iterable!=None:
+            self.set_list(iterable)
+    def cast_list(self, data):
+        if self.data_type==None:
+            return data
+        a=[]
+        for i in data:
+            try:
+                a.append(self.data_type(i))
+            except:
+                raise TypeError("Expected value that could be cast into {self.data_type}. Instead got {i} of type={type(i)}")
+        return a
+    def __getitem__(self, index):#
+        data=self.get_list()[index]
+        return data
+    def get_list(self):
+        cursor, conn=access_db() 
+        data=cursor.execute(f"SELECT {self.column} FROM {self.table} WHERE id={self.entry_uid}").fetchone()[0]
+        data=data.split(",")
+        data=self.cast_list(data)
+        conn.close()
+        return data
+    def set_list(self, l:list):
+        string=",".join(l)
+        cursor, conn=access_db() 
+        cursor.execute(f"UPDATE {self.table} SET {self.column}='{string}' WHERE id={self.entry_uid}")
+        conn.commit()
+        conn.close()
+    def append(self, value):
+        data=self.get_list()
+        data.append(value)
+        self.set_list(data)
+    def pop(self, index):
+        data=self.get_list()
+        r=data.pop(index)
+        self.set_list(data)
+        return r
+    def __setitem__(self, index, item):
+        if type(item)==str and "," in item:
+            raise TypeError("Text cannot contain a comma")
+        try:
+            item=str(item)
+        except:
+            raise TypeError(f"Item {item} of type {type(item)} couldn't be converted to a string")
+        data=self.get_list()
+        data[index]=item
+        self.set_list(data)
+    def __str__(self):
+        return str(self.get_list())
+    def __len__(self):
+        return len(self.get_list())
+class Player(DBClass):
+    def __init__(self, username:str, game_id:int, id:int):
+        self.username=username
+        self.id=id
+        self.game_id=game_id
+    table="hands"
+    position = DBClass._database_property("position")
+    cards= DBClass._database_list("cards", data_type=str)
+    number_of_cards = DBClass._database_property("number_of_cards")
+class Game(DBClass):
+    table="games"
+    number_of_players = DBClass._database_property("number_of_players")
+    next_player = DBClass._database_property("next_player")
+    direction = DBClass._database_property("direction")
+    discard = DBClass._database_list("discard")
+    draw = DBClass._database_list("draw", data_type=str)
+    rules= DBClass._database_list("rules", data_type=str)
+    players = DBClass._database_list("players", data_type=str)
     def __repr__(self) -> str:
         return f"Game {self.id=} {self.number_of_players=} {self.players=} {self.next_player=} {self.direction=} {self.discard=} {self.draw=}" 
     def __init__(self, id:int|str) -> None:
@@ -165,7 +154,7 @@ class Game():
                 "players": hands, 
                 "next_player": self.next_player, 
                 "direction": self.direction, 
-                "discard": card_to_json(self.discard), 
+                "discard": card_to_json(self.discard[-1]), 
                 "draw_length": len(self.draw)//2}
     def get_game_info_personalised(self, username:str):
         data:dict = self.get_game_info()
@@ -186,11 +175,14 @@ class Game():
         self.number_of_players=self.number_of_players+1
         hand=self.draw_card(n=7)
         cursor, conn = access_db()
-        cursor.execute(f'INSERT INTO hands(position, game_id, cards, username, number_of_cards) VALUES ({len(self.players)}, {self.id}, "{hand}", "{username}", 7)')
+        cursor.execute(f'INSERT INTO hands(position, game_id, username, number_of_cards) VALUES ({len(self.players)}, {self.id}, "{username}", 7)')
+        player=Player(username, self.id, cursor.lastrowid)
         conn.commit()
         conn.close()
+        player.cards=hand
+
     def draw_card(self, n:int=1):
-        self.draw, cards = self.draw[n*2:], self.draw[:n*2]
+        self.draw, cards = self.draw[n:], self.draw[:n]
         return cards
     def player_played_card(self, username: str, card:dict, card_n: int)->int:
         print(self.__repr__())
@@ -226,15 +218,19 @@ def get_game_by_id(id) -> Game:
     conn.close()
     return game
 def make_game(username:str, rules:str|None) -> Game:
-    cursor, conn = access_db()
     this_deck=["r0", "y0", "b0", "g0"]+[i+j for i in "rgby" for j in "123456789rsd"]*2+["u1", "u4"]*4
     shuffle(this_deck)
-    this_deck="".join(this_deck)
-    cursor.execute(f'INSERT INTO games(next_player, draw, players, number_of_players) VALUES ("{username}", "{this_deck}", "", 0)')
-    id=cursor.execute(f'SELECT id FROM games WHERE next_player="{username}" AND draw="{this_deck}"').fetchall()[0][0]
+    cursor, conn = access_db()
+    cursor.execute(f'INSERT INTO games(next_player, players, number_of_players) VALUES ("{username}", "", 0)')
+    id=cursor.lastrowid
     conn.commit()
     conn.close()
     game = get_game_by_id(id)
+    game.draw=this_deck
+    print(f"{rules=}")
+    game.rules=rules
+    game.discard=[this_deck.pop()]
+    game.direction=0
     game.add_player(username)
     """THIS NEEDS TO BE DELETED BEFORE IT ENTERS PRODUCTION!!"""
     game.add_player("Ryan Kabir")
