@@ -27,7 +27,64 @@ def init_db():
     with open("uno/create.sql", "r") as create:
         cursor.executescript(create.read())
     conn.close()
-
+class CSVList(list):
+    __slots__=["data", "table", "entry_uid", "column", "data_type"]
+    def __init__(self, iterable, table=None, entry_uid=None, column=None, data_type=None):
+        self.table=table
+        self.entry_uid=entry_uid
+        self.column=column
+        self.data_type=data_type
+        data=",".join(iterable)
+        conn, cursor=access_db()
+        cursor.execute(f"UPDATE {self.table} VALUES ({self.column}) TO {data} WHERE id={self.entry_uid}")
+        conn.commit()
+        conn.close()
+    def cast_list(self, data):
+        if self.data_type==None:
+            return data
+        a=[]
+        for i in data:
+            try:
+                a.append(self.data_type(i))
+            except:
+                raise("Expected value that could be cast into {self.data_type}. Instead got {i} of type={type(i)}")
+        return a
+    def __getitem__(self, index):#
+        self.get_list()[index]
+        return data[index]
+    def get_list():
+        cursor, conn=access_db() 
+        data=cursor.execute(f"SELECT {self.column} FROM {self.table} WHERE id={self.entry_uid}").fetchone()[0]
+        data=data.split(",")
+        data=self.cast_list(data)
+        conn.close()
+        return data
+    def set_list(l:list):
+        l=",".join(list)
+        cursor, conn=access_db() 
+        cursor.execute(f"UPDATE {self.table} SET {self.column}='{l}' WHERE id={self.entry_uid}")
+        conn.close()
+    def append(self, value):
+        data=self.get_list()
+        data.append(value)
+        self.set_list(data)
+    def pop(self, index):
+        data=self.get_list()
+        r=data.pop(value)
+        self.set_list(data)
+        return r
+    def __setitem__(self, index, item):
+        if type(item)==str and "," in item:
+            raise("Text cannot contain a comma")
+        try:
+            item=str(item)
+        except:
+            raise("Item {item} of type {type(item} couldn't be converted to a string")
+        data=self.get_list()
+        data[index]=item
+        self.set_list(data)
+    def __str__(self):
+        return str(self.get_list())
 class Player():
     def __init__(self, username:str, game_id:int, id:int):
         self.username=username
@@ -69,24 +126,29 @@ class Game():
         conn.close()
         return value
     @staticmethod
-    def _database_property(attribute:str, array=False):
-        def getter(self) -> str|list:
+    def _database_property(attribute:str):
+        def getter(self) -> str:
             value= self._get_db_attribute(attribute)
-            if array:
-                return value.split(",")
             return value
         def setter(self, value:str|list):
             if type(value)==list:
                 value=",".join(value)
             self._update_db(attribute, value)
         return property(getter, setter)
+    @staticmethod
+    def _database_list(attribute:str, data_type=None):
+        def getter(self):
+            """NEED A WAY TO FETCH AN ALREADY CREATED LIST"""
+            value=CSVList("")
+        def setter(self, iterable:list):
+            CSVList(iterable, table="game", entry_uid=self.id, column="attribute", data_type=data_type)
     number_of_players = _database_property("number_of_players")
     next_player = _database_property("next_player")
     direction = _database_property("direction")
     discard = _database_property("discard")
     draw = _database_property("draw", array=True)
     rules= _database_property("rules", array=True)
-    players = _database_property("players", array=True)
+    players = CSVList("players", array=True)# iterable, table=None, entry_uid=None, column=None, data_type=None
     def __repr__(self) -> str:
         return f"Game {self.id=} {self.number_of_players=} {self.players=} {self.next_player=} {self.direction=} {self.discard=} {self.draw=}" 
     def __init__(self, id:int|str) -> None:
