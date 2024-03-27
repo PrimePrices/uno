@@ -27,7 +27,8 @@ def init_db():
     with open("uno/create.sql", "r") as create:
         cursor.executescript(create.read())
     conn.close()
-
+class PlayerException(BaseException):
+    pass
 class DBClass:
     table="default"
     def _update_db(self, attribute:str, value:str|list):
@@ -121,10 +122,26 @@ class CSVList(list):
     def __len__(self):
         return len(self.get_list())
 class Player(DBClass):
-    def __init__(self, username:str, game_id:int, id:int):
+    def __init__(self, username:str, game_id=None, row_id=None):
         self.username=username
-        self.id=id
-        self.game_id=game_id
+        cursor,conn=access_db()
+        if game_id != None:
+            data = cursor.execute("SELECT id FROM {self.table} WHERE username={self.username} AND game_id={game_id}").fetchone()
+            self.game_id=game_id  
+        else: 
+            data = cursor.execute("SELECT id, game_id FROM {self.table} WHERE username={self.username}").fetchone()
+            self.game_id=data[1]
+        conn.close()
+        if not data:
+            raise PlayerException("Player not valid")
+        self.id = data[0]
+    def played_a_card(self, card:str, card_n:int)->int:
+        if self.cards[card_n]==card:
+            self.cards.pop(card_n)
+            self.number_of_cards=self.number_of_cards-1
+            return self.number_of_cards
+        else:
+            raise BaseException(f"Data was invalid, {card=} not in position {card_n} of {self.cards}")
     table="hands"
     position = DBClass._database_property("position")
     cards= DBClass._database_list("cards", data_type=str)
@@ -134,24 +151,23 @@ class Game(DBClass):
     number_of_players = DBClass._database_property("number_of_players")
     next_player = DBClass._database_property("next_player")
     direction = DBClass._database_property("direction")
-    discard = DBClass._database_list("discard")
+    discard = DBClass._database_list("discard", data_type=str)
     draw = DBClass._database_list("draw", data_type=str)
     rules= DBClass._database_list("rules", data_type=str)
-    players = DBClass._database_list("players", data_type=str)
+    players = DBClass._database_list("players", data_type=Player)
     def __repr__(self) -> str:
         return f"Game {self.id=} {self.number_of_players=} {self.players=} {self.next_player=} {self.direction=} {self.discard=} {self.draw=}" 
     def __init__(self, id:int|str) -> None:
         self.id: int=int(id)
     def get_game_info(self) -> dict:
-        cursor, conn = access_db()
-        hands={username: {"number_of_cards": number_of_cards, "position": position, "you": False} 
-               for username, number_of_cards, position in 
-               cursor.execute(f"SELECT username, number_of_cards, position FROM hands WHERE game_id={self.id}").fetchall()}
-        conn.close()
         return {"id": self.id, 
                 "rules": self.rules, 
                 "number_of_players":self.number_of_players, 
-                "players": hands, 
+                "players": {player.username: 
+                                {"number_of_cards": player.number_of_cards, 
+                                 "position": player.position, 
+                                 "you": False} 
+                            for player in self.players}, 
                 "next_player": self.next_player, 
                 "direction": self.direction, 
                 "discard": card_to_json(self.discard[-1]), 
@@ -164,48 +180,28 @@ class Game(DBClass):
         data["players"][username]["hand"]=hand
         return data
     def get_player_hand(self, username:str) -> str:
-        player=get_player_by_property("username", username)
-        return player.cards
+        return Player(username).cards
     def add_player(self, username:str) -> None:
         if username in self.players:
             print("player already in game")
             abort(409)
         self.players.append(username)
-        self.players=self.players
         self.number_of_players=self.number_of_players+1
         hand=self.draw_card(n=7)
         cursor, conn = access_db()
         cursor.execute(f'INSERT INTO hands(position, game_id, username, number_of_cards) VALUES ({len(self.players)}, {self.id}, "{username}", 7)')
-        player=Player(username, self.id, cursor.lastrowid)
+        player=Player(username, game_id=self.id, id=cursor.lastrowid)
         conn.commit()
         conn.close()
         player.cards=hand
-
     def draw_card(self, n:int=1):
         self.draw, cards = self.draw[n:], self.draw[:n]
         return cards
     def player_played_card(self, username: str, card:dict, card_n: int)->int:
-        print(self.__repr__())
-        print(self.players)
-        if username not in self.players:
-            print("player not in game so can't play card")
-            abort(414)
-        hand = self.get_player_hand(username)
+        player=Player(username, game_id=self.id)
+        hand = player.cards
         card_str=json_to_card(card)
-        if card_str not in hand:
-            print("card not in hand")
-            abort(414)
-        card_n=int(card_n)
-        print(f"{card_str=} {card_n=}")
-        if hand[card_n*2:card_n*2+2] != card_str:
-            print("invalid card position")
-            print(f"{hand[card_n*2:card_n*2+2]=}")
-            abort(418)
-        cursor, conn = access_db()
-        cursor.execute(f"UPDATE hands SET cards='{hand.replace(card_str, "")}', number_of_cards=number_of_cards-1 WHERE game_id={self.id} AND username='{username}'")
-        conn.commit()
-        cards_left=cursor.execute(f"SELECT number_of_cards FROM hands WHERE game_id={self.id} AND username='{username}'").fetchone()[0]
-        conn.close()
+        cards_left=player.played_card(card, int(card_n)
         return cards_left
 def get_game_by_id(id) -> Game:
     #this needs to also return none if the game doesn't exist
@@ -227,21 +223,19 @@ def make_game(username:str, rules:str|None) -> Game:
     conn.close()
     game = get_game_by_id(id)
     game.draw=this_deck
-    print(f"{rules=}")
     game.rules=rules
     game.discard=[this_deck.pop()]
     game.direction=0
     game.add_player(username)
     """THIS NEEDS TO BE DELETED BEFORE IT ENTERS PRODUCTION!!"""
     game.add_player("Ryan Kabir")
-
     return game
 def get_player_by_property(attribute:Literal["username", "id"], value:str) -> Player:
     cursor, conn = access_db()
     cursor.execute(f"SELECT username, game_id, id FROM hands WHERE {attribute}='{value}'")
     player = cursor.fetchone()
-    player_obj=Player(*player)
+    conn.close()
     if not player:
         abort(404)
-    conn.close()
+    player_obj=Player(*player)
     return player_obj
