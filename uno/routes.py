@@ -55,8 +55,11 @@ def updates(game_name):
     elif data["action"] == "player_drew_a_card":
         game=get_game_by_id(game_name)
         card=game.draw_card()
-        #db wrangling here
-        #emit_to_socketio
+        player=Player(current_user.username, game_id=game.id)
+        player.cards.append(str(card))
+        transmit(str(game_name), data["action"], current_user.username, {}
+    elif data["action"] == "uno_challenge":
+        pass
     else: print(data)
     return {"a": True}
 
