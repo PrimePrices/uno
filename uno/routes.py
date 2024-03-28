@@ -9,17 +9,17 @@ special_cards={"u0":"blank","u1":"wild","u2":"N/A","u3":"N/A","u4":"draw4","u5":
 @uno_bp.route("/newgame/<rules>", methods=["GET", "POST"])
 def newGame(rules):
     user=current_user.username
-    game=make_game(user, rules)
+    game=Game(create=True, username=user, rules=rules)
     return redirect("/uno/game/"+str(game.id))
 @uno_bp.route("/<game_name>/join/")
 def join(game_name):
     if current_user.is_authenticated:
-        game=get_game_by_id(game_name)
+        game=Game(game_name)
         game.add_player(current_user.username)
     return ""
 @uno_bp.route("/game/<game_name>")
 def render(game_name):
-    game=get_game_by_id(game_name)
+    game=Game(game_name)
     if game:
         return render_template("game.html.jinja", data=game.get_game_info_personalised(current_user.username))
     else:
@@ -28,41 +28,35 @@ def render(game_name):
 @uno_bp.route("/game/<game_name>/personalised.json", methods=["GET"])
 def render_json_personalised(game_name):
     user = current_user.username
-    game=get_game_by_id(game_name)
-    info=game.get_game_info_personalised(user)
+    return Game(game_name).get_game_inf_personalised(user)
+
     # info structure = {"id":, "rules", "number_of_players", "players": data, "next_player":, "direction":, "discard":, "draw":}
-    return info
 @uno_bp.route("/game/<game_name>.json")
 def render_json(game_name):
-    game=get_game_by_id(game_name)
-    info=game.get_game_info()
+    return Game(game_name).get_game_info()
     # info structure = {"id":, "rules", "number_of_players", "players": data, "next_player":, "direction":, "discard":, "draw":}
-    return info
-    #main.games[escape(game_name)]
 @login_required
 @uno_bp.route("/")
 def start():
     return render_template("create.html.jinja")
-
 @uno_bp.route("/game/<game_name>/updates", methods=["POST"])
 @login_required
 def updates(game_name):
     data=loads(request.data.decode("utf-8"))
     if data["action"] == "player_played_a_card":
-        game=get_game_by_id(game_name)
+        game=Game(game_name)
         cards_left=game.player_played_card(current_user.username, data["card"], data["card_n"])
         transmit(str(game_name), data["action"], current_user.username, {"card": data["card"], "card_n": data["card_n"], "cards_left": cards_left})
     elif data["action"] == "player_drew_a_card":
-        game=get_game_by_id(game_name)
+        game=Game(game_name)
         card=game.draw_card()
         player=Player(current_user.username, game_id=game.id)
         player.cards.append(str(card))
-        transmit(str(game_name), data["action"], current_user.username, {}
+        transmit(str(game_name), data["action"], current_user.username, {})
     elif data["action"] == "uno_challenge":
-        pass
+        print(f'{data["from"]} uno challenges {data["to"]} at {data["timestamp"]}')
     else: print(data)
     return {"a": True}
-
 #images and resources
 @uno_bp.route("/static/<anything>", methods=["GET"])
 def get(anything):

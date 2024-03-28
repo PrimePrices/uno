@@ -29,6 +29,8 @@ def init_db():
     conn.close()
 class PlayerException(BaseException):
     pass
+class GameException(BaseException):
+    pass
 class DBClass:
     table="default"
     def _update_db(self, attribute:str, value:str|list):
@@ -157,8 +159,31 @@ class Game(DBClass):
     players = DBClass._database_list("players", data_type=Player)
     def __repr__(self) -> str:
         return f"Game {self.id=} {self.number_of_players=} {self.players=} {self.next_player=} {self.direction=} {self.discard=} {self.draw=}" 
-    def __init__(self, id:int|str) -> None:
-        self.id: int=int(id)
+    def __init__(self, id:int|None=None, create=False, username=None, rules=None) -> None:
+        if create:
+            this_deck=["r0", "y0", "b0", "g0"]+[i+j for i in "rgby" for j in "123456789rsd"]*2+["u1", "u4"]*4
+            shuffle(this_deck)
+            cursor, conn = access_db()
+            cursor.execute(f'INSERT INTO games(next_player, players, number_of_players) VALUES ("{username}", "", 0)')
+            id=cursor.lastrowid
+            conn.commit()
+            conn.close()
+            self.draw=this_deck
+            self.rules=rules
+            self.discard=[this_deck.pop()]
+            self.direction=0
+            self.add_player(username)
+            """THIS NEEDS TO BE DELETED BEFORE IT ENTERS PRODUCTION!!"""
+            self.add_player("Ryan Kabir")
+        else:
+            cursor, conn = access_db()
+            id=int(id)
+            data=cursor.execute(f'SELECT id FROM {self.table} WHERE id="{id}"').fetchone()
+            conn.close()
+            if data:
+                self.id=int(id)
+            else:
+                raise GameException("Game doesn't exist")
     def get_game_info(self) -> dict:
         return {"id": self.id, 
                 "rules": self.rules, 
@@ -175,7 +200,6 @@ class Game(DBClass):
     def get_game_info_personalised(self, username:str):
         data:dict = self.get_game_info()
         hand:str = self.get_player_hand(username)
-        p:dict = data["players"]
         data["players"][username]["you"]=True
         data["players"][username]["hand"]=hand
         return data
@@ -201,35 +225,10 @@ class Game(DBClass):
         player=Player(username, game_id=self.id)
         hand = player.cards
         card_str=json_to_card(card)
-        cards_left=player.played_card(card, int(card_n)
+        cards_left=player.played_card(card, int(card_n))
         return cards_left
-def get_game_by_id(id) -> Game:
-    #this needs to also return none if the game doesn't exist
-    cursor, conn = access_db()
-    cursor.execute(f"SELECT id FROM games WHERE id={id}")
-    game = cursor.fetchone()
-    if not game:
-        abort(404)
-    game=Game(id)
-    conn.close()
-    return game
 def make_game(username:str, rules:str|None) -> Game:
-    this_deck=["r0", "y0", "b0", "g0"]+[i+j for i in "rgby" for j in "123456789rsd"]*2+["u1", "u4"]*4
-    shuffle(this_deck)
-    cursor, conn = access_db()
-    cursor.execute(f'INSERT INTO games(next_player, players, number_of_players) VALUES ("{username}", "", 0)')
-    id=cursor.lastrowid
-    conn.commit()
-    conn.close()
-    game = get_game_by_id(id)
-    game.draw=this_deck
-    game.rules=rules
-    game.discard=[this_deck.pop()]
-    game.direction=0
-    game.add_player(username)
-    """THIS NEEDS TO BE DELETED BEFORE IT ENTERS PRODUCTION!!"""
-    game.add_player("Ryan Kabir")
-    return game
+    return Game(create=True)
 def get_player_by_property(attribute:Literal["username", "id"], value:str) -> Player:
     cursor, conn = access_db()
     cursor.execute(f"SELECT username, game_id, id FROM hands WHERE {attribute}='{value}'")
