@@ -74,3 +74,9 @@ def favicon():
 @uno_bp.app_errorhandler(404)
 def not_found(error):
     return send_from_directory("uno/images/none", "404.svg")
+@uno_bp.app_errorhandler(PlayerException)
+def player_error(e):
+    return render_template("404_player_not_found.html.jinja")
+@uno_bp.app_errorhandler(405)
+def Not_allowed():
+    return render_template("bad_request.html.jinja")
