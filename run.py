@@ -2,11 +2,11 @@ from flask import Flask, render_template, request, send_from_directory, redirect
 from flask_socketio import SocketIO
 from flask_login import login_required
 from admin.__init__ import init_admin_app
-from uno.__init__ import init_uno_app
-from authentication.__init__ import init_auth_app
-from authentication.routes import logout, login, profile, sign_up
+from apps.uno.__init__ import init_uno_app
+from apps.authentication.__init__ import init_auth_app
+from apps.authentication.routes import logout, login, profile, sign_up
 from datetime import timedelta
-from uno.socketing import *
+from apps.uno.socketing import *
 import logging
 app=Flask(__name__)
 app.secret_key = "Proof by induction should always be taught by ducks!"

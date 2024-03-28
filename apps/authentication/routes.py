@@ -3,7 +3,7 @@ from flask_login import login_user, current_user, logout_user
 from .models import login_manager, connect_db, User, load_user
 from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
-auth_bp = Blueprint('auth', __name__, static_folder="uno/statics", template_folder="templates")
+auth_bp = Blueprint('auth', __name__, static_folder="uno/statics", template_folder="templates/authentication")
 
 
 @auth_bp.route("/logout")
@@ -45,9 +45,10 @@ def sign_up(cursor, conn):
         username=request.form.get("username")
         password=request.form.get("password")
         password_again=request.form.get("password_repeated")
+        username_is_none, invalid_format, username_invalid, passwords_dont_match, email_taken = False
         email=request.form.get("email")
         if username is None:
-            return render_template("sign_up.html.jinja", username_is_none=True)
+            return render_template("sign_up.html.jinja")
         if "default_" in username:
             return render_template("sign_up.html.jinja", invalid_format=True)
         cursor.execute(f"SELECT * FROM user WHERE username='{username}'")
@@ -70,4 +71,3 @@ def sign_up(cursor, conn):
 def unauthorized_callback():
     print(f"unathorised access to {request.path} by user {current_user}")
     return redirect("/login?next="+request.path)
-
