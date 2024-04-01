@@ -1,6 +1,7 @@
 from random import shuffle
 from flask import abort
 import sqlite3
+from inspect import stack
 from typing import Literal
 def card_to_json(string:str) -> dict:
     return {"colour": {"g": "green", "b": "blue", "y":"yellow", "r":"red", "u": "none"}[string[0]],
@@ -51,8 +52,6 @@ class DBClass:
     def _database_list(attribute:str, data_type=None) -> property:
         def getter(self):
             value=CSVList(table=self.table, entry_uid=self.id, column=attribute, data_type=data_type)
-            if attribute=="players":
-                print(str(value))
             return value
         def setter(self, iterable:list):
             CSVList(iterable=iterable, table=self.table, entry_uid=self.id, column=attribute, data_type=data_type)
@@ -71,6 +70,7 @@ class CSVList(list):
             return data
         a=[]
         if not(data):
+            print(f"trying to cast {data=}, appently null")
             return []
         for i in data:
             try:
@@ -82,22 +82,26 @@ class CSVList(list):
         data=self.get_list()[index]
         return data
     def get_list(self) -> list:
+        print("Getting list from database", self.column)
         cursor, conn=access_db() 
         data:str=cursor.execute(f"SELECT {self.column} FROM {self.table} WHERE id={self.entry_uid}").fetchone()[0]
         conn.close()
         if not data:
+            #print(f"{data=}")
             return []
         list_data: list[str]=data.split(",")
         list_data=self.cast_list(list_data)
-        if self.column!="draw":
-            print(f"FROM get_list SELECT {self.column} FROM {self.table} WHERE id={self.entry_uid} RETRUNS" , data)
-            print(f"LIST_DATA = {list_data}")
+        #if self.column!="draw":
+            #print(f"FROM get_list SELECT {self.column} FROM {self.table} WHERE id={self.entry_uid} RETRUNS" , data)
+            #print(f"LIST_DATA = {list_data}, {type(list_data)=}")
+            #print("\n".join([str(i.code_context) for i in stack()]))
         return list_data
     def set_list(self, l:list) -> None:
         if self.data_type!=None:
             l=[str(i) for i in l]
         string=",".join(l)
-        cursor, conn=access_db() 
+        cursor, conn=access_db()
+        print(f"UPDATE {self.table} SET {self.column}='{string}' WHERE id={self.entry_uid}")
         cursor.execute(f"UPDATE {self.table} SET {self.column}='{string}' WHERE id={self.entry_uid}")
         conn.commit()
         conn.close()
@@ -106,6 +110,7 @@ class CSVList(list):
     def append(self, value):
         data=self.get_list()
         data.append(value)
+        print("When appending data to self.column, data is", data)
         self.set_list(data)
     def pop(self, index):
         data=self.get_list()
@@ -126,6 +131,8 @@ class CSVList(list):
         return str(self.get_list())
     def __len__(self):
         return len(self.get_list())
+    def __iter__(self):
+        return iter(self.get_list())
 
 class Player(DBClass):
     def __init__(self, username:str, game_id=None, row_id=None):
@@ -163,9 +170,9 @@ class Game(DBClass):
     discard = DBClass._database_list("discard", data_type=str)
     draw = DBClass._database_list("draw", data_type=str)
     rules= DBClass._database_list("rules", data_type=str)
-    players = DBClass._database_list("players", data_type=Player)
+    players:property = DBClass._database_list("players", data_type=Player)
     def __repr__(self) -> str:
-        return f"Game {self.id=} {self.number_of_players=} {self.players=} {self.next_player=} {self.direction=} {self.discard=} {self.draw=}" 
+        return f"Game {self.id=} {self.number_of_players=} {self.players[:]=} {self.next_player=} {self.direction=} {self.discard=} {self.draw=}" 
     def __init__(self, id:int|None=None, create=False, username: str|None=None, rules=None) -> None:
         if create:
             this_deck=["r0", "y0", "b0", "g0"]+[i+j for i in "rgby" for j in "123456789rsd"]*2+["u1", "u4"]*4
@@ -191,9 +198,10 @@ class Game(DBClass):
             else:
                 raise GameException("Game doesn't exist")
     def get_game_info(self) -> dict:
-        print(f"{self.players=}")
+        print(f"{self.__repr__()=}")
         rules=self.rules
-        players=list(self.players)
+        players=self.players
+        #print(f"{str(players)=} {rules=}")
         return {"id": self.id, 
                 "rules": rules, 
                 "number_of_players":self.number_of_players, 
@@ -208,13 +216,14 @@ class Game(DBClass):
                 "draw_length": len(self.draw)//2}
     def get_game_info_personalised(self, username:str):
         data:dict = self.get_game_info()
-        print(data)
+        #print(data)
         hand:str = self.get_player_hand(username)
         data["players"][username]["you"]=True
-        data["players"][username]["hand"]=hand
+        data["players"][username]["hand"]=[card_to_json(card) for card in hand]
+        print("data=", data)
         return data
     def get_player_hand(self, username:str) -> str:
-        return Player(username).cards
+        return Player(username, game_id=self.id).cards
     def add_player(self, username:str) -> None:
         if username in self.players:
             print("player already in game")
@@ -225,7 +234,7 @@ class Game(DBClass):
         cursor, conn = access_db()
         cursor.execute(f'INSERT INTO hands(position, game_id, username, number_of_cards) VALUES ({self.number_of_players}, {self.id}, "{username}", 7)')
         id=cursor.lastrowid
-        print(f"{id=}")
+        #print(f"{id=}")
         conn.commit()
         conn.close()
         player=Player(username, game_id=self.id, row_id=id)
@@ -248,5 +257,5 @@ def get_player_by_property(attribute:Literal["username", "id"], value:str) -> Pl
     conn.close()
     if not player:
         abort(404)
-    player_obj=Player(*player)
+    player_obj=Player(player[0], game_id=player[1], row_id=player[2])
     return player_obj

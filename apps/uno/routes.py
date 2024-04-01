@@ -51,7 +51,7 @@ def updates(game_name):
         game=Game(game_name)
         card=game.draw_card()
         player=Player(current_user.username, game_id=game.id)
-        player.cards.append(str(card))
+        player.cards.append(card[0])
         transmit(str(game_name), data["action"], current_user.username, {})
     elif data["action"] == "uno_challenge":
         print(f'{data["from"]} uno challenges {data["to"]} at {data["timestamp"]}')

@@ -56,3 +56,10 @@
 .clickable:hover{
     transform: translateY(-15px)
 }
+#draw{
+    width: 200px;
+    height: 75px; 
+}
+.stacking{
+    margin-left: -55px
+}

@@ -16,12 +16,13 @@ function get_game_id(){
 function clicked_card(e){
     console.log(e)
     let cardElem= e.target
+    const url = new URL(window.location).pathname + "/updates"
     if (cardElem.parentNode.parentNode.getAttribute("data-you")=="true"){
         console.log("valid")
         console.log(e.target)
         const value = cardElem.getAttribute("data-value");
         const colour = cardElem.getAttribute("data-colour");
-        const url = new URL(window.location).pathname + "/updates"
+
         const hand_list=Array.from(cardElem.parentNode.children)
         console.log(colour, value)
         console.log(hand_list)
@@ -35,9 +36,11 @@ function clicked_card(e){
                         "card":{"value":value, "colour": colour}, 
                         "card_n": position}), 
                     headers: {'Content-Type': 'application/json'}})
-    } else {
-        console.log("somethings gone wrong")
-    }
+    } else if (cardElem.parentNode.id="draw"){
+        fetch(url, {method: "POST",
+                    body: JSON.stringify({"action": "player_drew_a_card"}), 
+                    headers: {'Content-Type': 'application/json'}})
+    } else {console.log("somethings gone wrong")}
 };
 function add_event_listener_to_cards(){
     console.log("adding event listener to cards")
@@ -53,7 +56,7 @@ function player_played_card(data){
     var card_n = data["card_n"]
     var cards_left=data["cards_left"]
     console.log(username, card, card_n, cards_left)
-    const div=document.getElementById(username)
+    const div=get_player(username)
     console.log(div)
     var hand=div.children[1]
     console.log(div, hand)
@@ -101,12 +104,6 @@ function load_player(player_data){
 }
 
 
-function render_game_state(draw_cards, discard){
-    console.log(discard)
-    const env = document.getElementById("gameState")
-    env.appendChild(load_card(discard))
-    env.appendChild(load_card(blank))
-}
 function display_art(){
     colors=["red", "yellow", "green", "blue"]
     values=[0,1,2,3,4,5,6,7,8,9,0,"reverse","draw2","skip"]
@@ -118,6 +115,9 @@ function display_art(){
         } 
         document.body.appendChild(elem)
     }
+}
+function get_player(username){
+    return document.getElementsByName(username)[0]
 }
 
 const channel = new URL(window.location).hostname
@@ -158,6 +158,13 @@ socket.on('update_game_state', function(data) {
             //username
             break;
         case "player_drew_a_card":
+            console.log(data)
+            if (data.player!=="admin"){ //need to now get my username
+                console.log(get_player(data.player))
+            } else {
+                console.log("admin drew a card")
+            }
+
             //username draw_length
             break;
         case "your_turn":
