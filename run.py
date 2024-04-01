@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, send_from_directory, redirect, abort, make_response, Response, url_for
 from flask_socketio import SocketIO
 from flask_login import login_required
-from admin.__init__ import init_admin_app
+from apps.admin.__init__ import init_admin_app
 from apps.uno.__init__ import init_uno_app
 from apps.authentication.__init__ import init_auth_app
 from apps.authentication.routes import logout, login, profile, sign_up
@@ -40,7 +40,7 @@ logger.addFilter(ExcludeRoutesFilter())
 def site_map()->list:
     links = []
     for rule in app.url_map.iter_rules():  
-        if "GET" in rule.methods and has_no_empty_params(rule):
+        if "GET" in rule.methods and has_no_empty_params(rule): # type: ignore
             url = url_for(rule.endpoint, **(rule.defaults or {}))
             links.append((url, rule.endpoint))
     return links
@@ -67,7 +67,7 @@ def Profile():
     return profile()
 @app.route("/sign-up")
 def SignUp():
-    return sign_up()
+    return sign_up() # type: ignore
 @app.route("/images/<anything>.svg")
 def svg_symbol(anything):
     print(anything)
@@ -85,7 +85,7 @@ def Lake():
     abort(-41)
 @app.route("/favicon.ico")
 def favicon():
-    return send_from_directory("uno/images/blue", "revese.svg")
+    return send_from_directory("apps/uno/images/blue", "reverse.svg")
 """
 @app.errorhandler(703)
 def exceptions(error):

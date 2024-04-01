@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, send_from_directory, request, redi
 from .game import *
 from json import loads
 from flask_login import login_required, current_user
-uno_bp = Blueprint("uno", __name__, template_folder="templates/uno")
+uno_bp = Blueprint("uno", __name__)
 from .socketing import transmit
 
 special_cards={"u0":"blank","u1":"wild","u2":"N/A","u3":"N/A","u4":"draw4","u5":"N/A","u6":"N/A","u7":"N/A","u8":"N/A","u9":"N/A"}
@@ -21,14 +21,14 @@ def join(game_name):
 def render(game_name):
     game=Game(game_name)
     if game:
-        return render_template("game.html.jinja", data=game.get_game_info_personalised(current_user.username))
+        return render_template("uno/game.html.jinja", data=game.get_game_info_personalised(current_user.username))
     else:
         abort(404)
 @uno_bp.route("/game/personalised/<game_name>/.json")
 @uno_bp.route("/game/<game_name>/personalised.json", methods=["GET"])
 def render_json_personalised(game_name):
     user = current_user.username
-    return Game(game_name).get_game_inf_personalised(user)
+    return Game(game_name).get_game_info_personalised(user)
 
     # info structure = {"id":, "rules", "number_of_players", "players": data, "next_player":, "direction":, "discard":, "draw":}
 @uno_bp.route("/game/<game_name>.json")
@@ -38,7 +38,7 @@ def render_json(game_name):
 @login_required
 @uno_bp.route("/")
 def start():
-    return render_template("create.html.jinja")
+    return render_template("uno/create.html.jinja")
 @uno_bp.route("/game/<game_name>/updates", methods=["POST"])
 @login_required
 def updates(game_name):
@@ -65,16 +65,16 @@ def get(anything):
 def get_svg(colour, value):
     value=value+".svg"
     if colour in ["blue", "red", "yellow", "green", "none"]: 
-        return send_from_directory(f"uno/images/{colour}", value)
+        return send_from_directory(f"apps/uno/images/{colour}", value)
     else: 
-        return send_from_directory("uno/images/none", "404.svg")
+        return send_from_directory("apps/uno/images/none", "404.svg")
 @uno_bp.route("/favicon.ico")
 def favicon():
-    return send_from_directory("uno/images/blue", "reverse.svg")
+    return send_from_directory("apps/uno/images/blue", "reverse.svg")
 @uno_bp.app_errorhandler(404)
 def not_found(error):
-    return send_from_directory("uno/images/none", "404.svg")
-@uno_bp.app_errorhandler(PlayerException)
+    return send_from_directory("apps/uno/images/none", "404.svg")
+@uno_bp.app_errorhandler(PlayerException) # type: ignore
 def player_error(e):
     return render_template("404_player_not_found.html.jinja")
 @uno_bp.app_errorhandler(405)
