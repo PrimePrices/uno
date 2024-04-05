@@ -25,7 +25,7 @@ def login():
         User=load_user(name)
         print(f"{User} is trying to log in")
         if User is None:
-            return render_template("login.html.jinja", username_invalid=True)
+            return render_template("authenticationlogin.html.jinja", username_invalid=True)
         if User.check_password(password):
             User.authenticated=True
             login_user(User, remember=True)
@@ -35,8 +35,8 @@ def login():
             return redirect(next or "/index")
         else:
             print(f"{password=}")
-            return render_template("login.html.jinja", password_invalid=True)
-    return render_template("login.html.jinja")
+            return render_template("authentication/login.html.jinja", password_invalid=True)
+    return render_template("authentication/login.html.jinja")
 
 @auth_bp.route("/sign_up", methods=["GET", "POST"])
 @connect_db
@@ -45,12 +45,11 @@ def sign_up(cursor, conn):
         username=request.form.get("username")
         password=request.form.get("password")
         password_again=request.form.get("password_repeated")
-        username_is_none, invalid_format, username_invalid, passwords_dont_match, email_taken = False
         email=request.form.get("email")
         if username is None:
-            return render_template("sign_up.html.jinja")
+            return render_template("authentication/sign_up.html.jinja")
         if "default_" in username:
-            return render_template("sign_up.html.jinja", invalid_format=True)
+            return render_template("authentication/sign_up.html.jinja", invalid_format=True)
         cursor.execute(f"SELECT * FROM user WHERE username='{username}'")
         if cursor.fetchone() or "default_" in username:
             return render_template("signup.html.jinja", username_invalid=True)

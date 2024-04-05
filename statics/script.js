@@ -30,16 +30,11 @@ function clicked_card(e){
             if (hand_list[i]===cardElem){var position=i}
         }
         console.log("position=", position)
-        fetch(url, {method: "POST", 
-                    body: JSON.stringify({
-                        "action": "player_played_a_card", 
-                        "card":{"value":value, "colour": colour}, 
-                        "card_n": position}), 
-                    headers: {'Content-Type': 'application/json'}})
+        socket.emit("update", {"game_name": get_game_id(), 
+                                "info":{"action": "player_played_a_card", "card":{"value":value, "colour": colour}, "card_n": position}})
+
     } else if (cardElem.parentNode.id="draw"){
-        fetch(url, {method: "POST",
-                    body: JSON.stringify({"action": "player_drew_a_card"}), 
-                    headers: {'Content-Type': 'application/json'}})
+        socket.emit("update", {"game_name": get_game_id(), "info":{"action": "player_drew_a_card"}})
     } else {console.log("somethings gone wrong")}
 };
 function add_event_listener_to_cards(){
@@ -55,15 +50,23 @@ function player_played_card(data){
     var card = data["card"]
     var card_n = data["card_n"]
     var cards_left=data["cards_left"]
-    console.log(username, card, card_n, cards_left)
     const div=get_player(username)
-    console.log(div)
     var hand=div.children[1]
-    console.log(div, hand)
     card=hand.children[card_n]
-    console.log(card)
     console.log("card played")
     hand.removeChild(card)
+    const discard = document.getElementById("discard")
+    card.classList.remove("clickable")
+    while (!(discard.firstChild in [" "])) {
+        console.log(discard, discard.firstChild)
+        if (discard.firstChild!=null){
+            discard.removeChild(discard.firstChild);
+        } else {break}
+        
+    }
+    console.log(discard)
+    discard.appendChild(card)
+
 }	
 function load_player(player_data){
     const elem = document.createElement("div");
@@ -119,6 +122,9 @@ function display_art(){
 function get_player(username){
     return document.getElementsByName(username)[0]
 }
+function get_my_name(){
+    return document.getElementById("myHand").firstChild.name
+}
 
 const channel = new URL(window.location).hostname
 //const channel = new URL(window.location).hostname+"/uno"
@@ -137,6 +143,7 @@ socket.on("disconnect", function(){
     console.log("disconnected")
 })
 socket.on('update_game_state', function(data) {
+    let player;
     switch(data.action) {
         case "player_played_a_card":
             //username, card, card_n, cards_left
@@ -149,7 +156,7 @@ socket.on('update_game_state', function(data) {
             break;
         case "player_joined":
             //username position number_of_cards draw_length
-            const player=load_player()
+            player=load_player()
             break;
         case "player_left":
             //username
@@ -159,18 +166,23 @@ socket.on('update_game_state', function(data) {
             break;
         case "player_drew_a_card":
             console.log(data)
-            if (data.player!=="admin"){ //need to now get my username
+            if (data.player!==get_my_name()){ //need to now get my username
+                player = get_player(data.player)    
+                player.children[2].append(load_card({colour:"none", value:"back"}))
                 console.log(get_player(data.player))
             } else {
                 console.log("admin drew a card")
             }
-
             //username draw_length
             break;
         case "your_turn":
             //none
             break;
         case "you_drew_a_card":
+            console.log(data)
+            player = document.getElementById("myHand").children[0]
+            console.log(player, player.children[1])
+            player.children[1].appendChild(load_card(data["card"]))
             //username, card, draw_length
             break;
         case "you_won":
@@ -197,22 +209,4 @@ socket.on('update_game_state', function(data) {
 
 window.onload = async function(){
     add_event_listener_to_cards()
-    /*
-    let response = await fetch((new URL(window.location)).pathname+"/personalised.json")
-    var info = await response.json()
-    console.log(info)
-    var players=info["players"]
-    console.log(players)
-    const opponents=document.getElementById("opponents")
-    for (var key in players){
-        players[key]["username"]=key
-        console.log(key, players[key])
-        if (!players[key]["you"]){
-            opponents.appendChild(load_player(players[key]))
-        } else {
-            document.getElementById("myHand").appendChild(load_player(players[key]))
-        }
-    }
-    render_game_state(info.draw_length, info.discard)
-    */
 }

@@ -79,10 +79,8 @@ class CSVList(list):
                 raise TypeError(f"Expected value that could be cast into {self.data_type}. Instead got {i} of type={type(i)}")
         return a
     def __getitem__(self, index):#
-        data=self.get_list()[index]
-        return data
+        return self.get_list()[index]
     def get_list(self) -> list:
-        print("Getting list from database", self.column)
         cursor, conn=access_db() 
         data:str=cursor.execute(f"SELECT {self.column} FROM {self.table} WHERE id={self.entry_uid}").fetchone()[0]
         conn.close()
@@ -101,16 +99,12 @@ class CSVList(list):
             l=[str(i) for i in l]
         string=",".join(l)
         cursor, conn=access_db()
-        print(f"UPDATE {self.table} SET {self.column}='{string}' WHERE id={self.entry_uid}")
         cursor.execute(f"UPDATE {self.table} SET {self.column}='{string}' WHERE id={self.entry_uid}")
         conn.commit()
         conn.close()
-        if self.column!="draw":
-            print(f"FROM set_list UPDATE {self.table} SET {self.column}='{string}' WHERE id={self.entry_uid}")
     def append(self, value):
         data=self.get_list()
         data.append(value)
-        print("When appending data to self.column, data is", data)
         self.set_list(data)
     def pop(self, index):
         data=self.get_list()
@@ -136,7 +130,6 @@ class CSVList(list):
 
 class Player(DBClass):
     def __init__(self, username:str, game_id=None, row_id=None):
-        print(f"{username=}, {game_id=}, {row_id=}")
         self.username=username
         cursor,conn=access_db()
         if game_id != None:
@@ -198,7 +191,6 @@ class Game(DBClass):
             else:
                 raise GameException("Game doesn't exist")
     def get_game_info(self) -> dict:
-        print(f"{self.__repr__()=}")
         rules=self.rules
         players=self.players
         #print(f"{str(players)=} {rules=}")
@@ -220,7 +212,6 @@ class Game(DBClass):
         hand:str = self.get_player_hand(username)
         data["players"][username]["you"]=True
         data["players"][username]["hand"]=[card_to_json(card) for card in hand]
-        print("data=", data)
         return data
     def get_player_hand(self, username:str) -> str:
         return Player(username, game_id=self.id).cards

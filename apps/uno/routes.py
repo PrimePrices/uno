@@ -6,6 +6,7 @@ uno_bp = Blueprint("uno", __name__)
 from .socketing import transmit
 
 special_cards={"u0":"blank","u1":"wild","u2":"N/A","u3":"N/A","u4":"draw4","u5":"N/A","u6":"N/A","u7":"N/A","u8":"N/A","u9":"N/A"}
+
 @uno_bp.route("/newgame/<rules>", methods=["GET", "POST"])
 def newGame(rules):
     user=current_user.username
@@ -39,24 +40,8 @@ def render_json(game_name):
 @uno_bp.route("/")
 def start():
     return render_template("uno/create.html.jinja")
-@uno_bp.route("/game/<game_name>/updates", methods=["POST"])
-@login_required
-def updates(game_name):
-    data=loads(request.data.decode("utf-8"))
-    if data["action"] == "player_played_a_card":
-        game=Game(game_name)
-        cards_left=game.player_played_card(current_user.username, data["card"], data["card_n"])
-        transmit(str(game_name), data["action"], current_user.username, {"card": data["card"], "card_n": data["card_n"], "cards_left": cards_left})
-    elif data["action"] == "player_drew_a_card":
-        game=Game(game_name)
-        card=game.draw_card()
-        player=Player(current_user.username, game_id=game.id)
-        player.cards.append(card[0])
-        transmit(str(game_name), data["action"], current_user.username, {})
-    elif data["action"] == "uno_challenge":
-        print(f'{data["from"]} uno challenges {data["to"]} at {data["timestamp"]}')
-    else: print(data)
-    return {"a": True}
+
+
 #images and resources
 @uno_bp.route("/static/<anything>", methods=["GET"])
 def get(anything):
