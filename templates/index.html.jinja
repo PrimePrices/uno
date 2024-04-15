@@ -1,17 +1,20 @@
-
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <link rel="icon" type="image/x-icon" href="/uno/static/images/blue/reverse.svg">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Uno Player's Hand</title>
-    <link rel="stylesheet" type ="text/css" href="{{ url_for('static', filename='styles.css') }}">
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
-</head>
-
-<body>
-</body>
-
-</html>
+{% extends base.html.jinja %}
+{% block links %}<source>{% endblock %}
+{% block content %}
+    <h1>Index.html</h1>
+    <h3>My projects</h3>
+    <div class="my_projects">
+        <a href = "/fact"><img href="/images/links/fact" alt="Fact of the Day" class="slider_img"></a>
+        <a href = "/uno"><img href="/uno/images/blue/reverse.svg alt="Uno" class="slider_img"></a>
+    </div>
+    <div id="Fact">
+        <p class="date">{{date}}</p>
+        <p>Fact of the Day: {{fact}}<p>
+        <p>Sources : {{sources}}</p>
+        <div id="reactions">
+            {% for i in {{reactions}}%}
+                <div id="emoji" count=i.count>i.emoji</div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
