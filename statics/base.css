@@ -65,8 +65,8 @@ body {
 }
 
 .footer{
-  height: auto;
-  position:sticky;
+  height: 30px;
+  position:fixed;
   background-color: rgb(89, 89, 206);
   bottom: 0;
   left:0;
@@ -76,7 +76,9 @@ body {
   outline: black 1px solid;
   display: block;
 }
-
+.footer::before{
+  margin-bottom: 30px;
+}
 /* Add media queries for responsiveness - when the screen is 500px wide or less, stack the links on top of each other */
 @media screen and (max-width: 500px) {
   .header a {
@@ -102,7 +104,7 @@ body {
 
 .hamburger div {
   background-color: rgb(61, 61, 61);
-  position: relative;
+  position: absolute;
   width: 40px;
   height: 5px;
   margin-top: 7px;
@@ -135,8 +137,6 @@ body {
   height: 340px;
 }
 
-
-/* Menu */
 .dropdown {
   width: 100%;
   background-color: #02173F;
@@ -150,7 +150,7 @@ body {
   clear: both;
   width: auto;
   text-align: center;
-  height: 0px;
+  height: auto;
   overflow: hidden;
   transition: height .4s ease;
   z-index: 120;
