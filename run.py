@@ -11,7 +11,7 @@ import logging
 app=Flask(__name__)
 app.secret_key = "Proof by induction should always be taught by ducks!"
 socketio=SocketIO(app)
-app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=30)
+#app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=30)
 init_uno_app(app, socketio)
 init_admin_app(app)
 init_auth_app(app)
@@ -49,7 +49,7 @@ def site_map()->list:
 @app.route("/index")
 def index():
     print(f"{current_user.is_authenticated=}")
-    return render_template("base.html.jinja")
+    return render_template("index.html.jinja")
 @app.route("/static/<anything>")
 def get(anything):
     return send_from_directory("statics", anything)
