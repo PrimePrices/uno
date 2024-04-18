@@ -3,6 +3,7 @@ from flask import abort
 import sqlite3
 from inspect import stack
 from typing import Literal
+from flask import abort
 def card_to_json(string:str) -> dict:
     return {"colour": {"g": "green", "b": "blue", "y":"yellow", "r":"red", "u": "none"}[string[0]],
             "value": {"0":0,"1":1,"2":2,"3":3,"4":4,"5":5,"6":6,"7":7,"8":8,"9":9,"r":"reverse","d":"draw2", "s":"skip"}[string[1]]}
@@ -157,13 +158,14 @@ class Player(DBClass):
     number_of_cards = DBClass._database_property("number_of_cards")
 class Game(DBClass):
     table="games"
-    number_of_players = DBClass._database_property("number_of_players")
-    next_player = DBClass._database_property("next_player")
-    direction = DBClass._database_property("direction")
-    discard = DBClass._database_list("discard", data_type=str)
-    draw = DBClass._database_list("draw", data_type=str)
-    rules= DBClass._database_list("rules", data_type=str)
+    number_of_players:property = DBClass._database_property("number_of_players")
+    next_player:property = DBClass._database_property("next_player")
+    direction:property = DBClass._database_property("direction")
+    discard:property = DBClass._database_list("discard", data_type=str)
+    draw:property = DBClass._database_list("draw", data_type=str)
+    rules:property= DBClass._database_list("rules", data_type=str)
     players:property = DBClass._database_list("players", data_type=Player)
+    last_activity:property = DBClass._database_property("last_activity")
     def __repr__(self) -> str:
         return f"Game {self.id=} {self.number_of_players=} {self.players[:]=} {self.next_player=} {self.direction=} {self.discard=} {self.draw=}" 
     def __init__(self, id:int|None=None, create=False, username: str|None=None, rules=None) -> None:
@@ -237,8 +239,31 @@ class Game(DBClass):
         player=Player(username, game_id=self.id)
         hand = player.cards
         card_str=json_to_card(card)
+        
         cards_left=player.played_a_card(card_str, int(card_n))
         return cards_left
+    def check_if_card_is_valid(self, card:str, player):
+        player=Player(player, game_id=self.id)
+        if card not in player.cards:
+            abort(503, message="card not in hand")
+        value=compare_card(card, self.discard[-1])
+        if "anyone_can_play_with_identical_cards" in self.rules and value==2:
+            return True
+        if bool(value) and self.next_player==player:
+            return True
+        else: return False
+    def compare_card(card1, discard)->int:
+        if card1==discard[0]+discard[1]:
+            return 2
+        if len(discard)>=3:
+            if card1[0]==discard[2]:
+                return 1
+        else:
+            if card[0]==discard[1]:
+                return 1
+        if card[1]==discard[1]:
+            return 1
+        return 0  
 def make_game(username:str, rules:str|None) -> Game:
     return Game(create=True)
 def get_player_by_property(attribute:Literal["username", "id"], value:str) -> Player:
