@@ -159,7 +159,7 @@ class Player(DBClass):
 class Game(DBClass):
     table="games"
     number_of_players:property = DBClass._database_property("number_of_players")
-    next_player:property = DBClass._database_property("next_player")
+    next_player:property = DBClass._database_property("next_player") #the player currently to play
     direction:property = DBClass._database_property("direction")
     discard:property = DBClass._database_list("discard", data_type=str)
     draw:property = DBClass._database_list("draw", data_type=str)
@@ -192,6 +192,13 @@ class Game(DBClass):
                 self.id=int(id)
             else:
                 raise GameException("Game doesn't exist")
+    def increment_players(self) -> None:
+        next_player=self.next_player
+        if self.direction = 0:
+            self.players = self.players[1:]+self.players[0]
+        else:
+            self.players = self.players[-1]+self.players[:-1]
+        self.next_player=self.players[0]
     def get_game_info(self) -> dict:
         rules=self.rules
         players=self.players
