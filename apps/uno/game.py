@@ -1,7 +1,6 @@
 from random import shuffle
 from flask import abort
 import sqlite3
-from inspect import stack
 from typing import Literal
 from flask import abort
 def card_to_json(string:str) -> dict:
@@ -13,7 +12,7 @@ def access_db() -> tuple:
     conn=sqlite3.connect("apps/uno/database.db")
     cursor=conn.cursor()
     return cursor, conn
-def init_db():
+def init_db() -> None:
     cursor, conn = access_db()
     with open("apps/uno/create.sql", "r") as create:
         cursor.executescript(create.read())
@@ -215,7 +214,7 @@ class Game(DBClass):
                 "direction": self.direction, 
                 "discard": card_to_json(self.discard[-1]), 
                 "draw_length": len(self.draw)//2}
-    def get_game_info_personalised(self, username:str):
+    def get_game_info_personalised(self, username:str) -> dict["str"|"dict"|"list"]:
         data:dict = self.get_game_info()
         #print(data)
         hand:str = self.get_player_hand(username)
@@ -239,7 +238,7 @@ class Game(DBClass):
         conn.close()
         player=Player(username, game_id=self.id, row_id=id)
         player.cards=hand
-    def draw_card(self, n:int=1):
+    def draw_card(self, n:int=1) -> list["str"]:
         self.draw, cards = self.draw[n:], self.draw[:n]
         return cards
     def player_played_card(self, username: str, card:dict, card_n: int)->int:
@@ -249,7 +248,7 @@ class Game(DBClass):
         
         cards_left=player.played_a_card(card_str, int(card_n))
         return cards_left
-    def check_if_card_is_valid(self, card:str, player):
+    def check_if_card_is_valid(self, card:str, player) -> bool:
         player=Player(player, game_id=self.id)
         if card not in player.cards:
             abort(503, message="card not in hand")
@@ -272,7 +271,7 @@ class Game(DBClass):
             return 1
         return 0  
 def make_game(username:str, rules:str|None) -> Game:
-    return Game(create=True)
+    return Game(username=username, create=True, rules=rules)
 def get_player_by_property(attribute:Literal["username", "id"], value:str) -> Player:
     cursor, conn = access_db()
     cursor.execute(f"SELECT username, game_id, id FROM hands WHERE {attribute}='{value}'")
