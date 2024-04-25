@@ -3,6 +3,8 @@ from flask import abort
 import sqlite3
 from typing import Literal
 from flask import abort
+
+
 def card_to_json(string:str) -> dict:
     return {"colour": {"g": "green", "b": "blue", "y":"yellow", "r":"red", "u": "none"}[string[0]],
             "value": {"0":0,"1":1,"2":2,"3":3,"4":4,"5":5,"6":6,"7":7,"8":8,"9":9,"r":"reverse","d":"draw2", "s":"skip"}[string[1]]}
@@ -39,7 +41,7 @@ class DBClass:
         conn.close()
         return value
     @staticmethod
-    def _database_property(attribute:str):
+    def _database_property(attribute:str) -> property:
         def getter(self) -> str:
             value= self._get_db_attribute(attribute)
             return value
@@ -53,7 +55,7 @@ class DBClass:
         def getter(self):
             value=CSVList(table=self.table, entry_uid=self.id, column=attribute, data_type=data_type)
             return value
-        def setter(self, iterable:list):
+        def setter(self, iterable:list) -> property:
             CSVList(iterable=iterable, table=self.table, entry_uid=self.id, column=attribute, data_type=data_type)
         return property(getter, setter)
 class CSVList(list):
@@ -193,7 +195,7 @@ class Game(DBClass):
                 raise GameException("Game doesn't exist")
     def increment_players(self) -> None:
         next_player=self.next_player
-        if self.direction = 0:
+        if self.direction == 0:
             self.players = self.players[1:]+self.players[0]
         else:
             self.players = self.players[-1]+self.players[:-1]
@@ -223,7 +225,7 @@ class Game(DBClass):
         return data
     def get_player_hand(self, username:str) -> str:
         return Player(username, game_id=self.id).cards
-    def add_player(self, username:str) -> None:
+    def add_player(self, username:str) -> player:
         if username in self.players:
             print("player already in game")
             abort(409)
@@ -238,10 +240,11 @@ class Game(DBClass):
         conn.close()
         player=Player(username, game_id=self.id, row_id=id)
         player.cards=hand
+        return player
     def draw_card(self, n:int=1) -> list["str"]:
         self.draw, cards = self.draw[n:], self.draw[:n]
         return cards
-    def player_played_card(self, username: str, card:dict, card_n: int)->int:
+    def player_played_card(self, username: str, card:dict, card_n: int) -> int:
         player=Player(username, game_id=self.id)
         hand = player.cards
         card_str=json_to_card(card)
@@ -258,7 +261,7 @@ class Game(DBClass):
         if bool(value) and self.next_player==player:
             return True
         else: return False
-    def compare_card(card1, discard)->int:
+    def compare_card(card1, discard) -> int:
         if card1==discard[0]+discard[1]:
             return 2
         if len(discard)>=3:

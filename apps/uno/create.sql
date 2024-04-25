@@ -14,5 +14,6 @@ CREATE TABLE IF NOT EXISTS games(
   next_player TEXT,
   direction INTEGER DEFAULT 0, 
   discard TEXT,
-  draw TEXT
+  draw TEXT, 
+  last_activity TEXT
 )
