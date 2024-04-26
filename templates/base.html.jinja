@@ -7,36 +7,37 @@
     <link rel="stylesheet" type ="text/css" href="/static/base.css">
     {% block statics %}{% endblock %}
 </head>
-<body>
-</body>
-    <div class="header">
-        <nav>
-            <div class="hamburger_container">
-                <input id="toggle_hamburger" type="checkbox" />
-                <label class="hamburger" for="toggle_hamburger">
-                      <div class="hamburger_top"></div>
-                      <div class="hamburger_meat"></div>
-                      <div class="hamburger_bottom"></div>
-                </label>
-                <div class="dropdown">
-                    <a href="/uno" class="uno-link"><img href = "/uno/images/blue/reverse.svg" alt="Uno" class="header_img"></a>
-                    <a href="/fact"><img href ="/images/links/fact alt="Fact of the Day"></a>
+    <body>
+        <nav class="header">
+            
+
+                
+                <a href="/" class="logo"><img href = "/images/links/home.svg" alt="Home" class="header_img"></a>
+                <a href="/contact"><img href= "/images/links/contact.svg" alt="Contact" class="header_img"></a>
+                <a href="/about"><img href= "/images/links/about.svg" alt="About" class="header_img"></a>
+                {% block links %}{% endblock %}
+                {% if not logged_in %}
+                    <a href="/login"><img src = "/images/links/login.svg" alt="Login" class= "header_img"></a>
+                    <a href="/sign_up"><img src = "/images/links/signup.svg" alt="Sign Up" class= "header_img"></a>
+                {% else %}
+                    <a href ="/profile"><img src= "/images/links/profile.svg" alt="Profile" class="header_img"></a>
+                    <a href ="/logout"><img src="/images/links/logout.svg" alt="Log Out" class= "header_img"></a>
+                {% endif %}
+                <div class="hamburger_container">
+                    <input id="toggle_hamburger" type="checkbox" />
+                    <label class="hamburger" for="toggle_hamburger">
+                          <div class="hamburger_top"></div>
+                          <div class="hamburger_meat"></div>
+                          <div class="hamburger_bottom"></div>
+                    </label>
+                    <div class="dropdown">
+                        <a href="/uno" class="uno-link"><img href = "/uno/images/blue/reverse.svg" alt="Uno" class="header_img"></a>
+                        <a href="/fact"><img href ="/images/links/fact" alt="Fact of the Day"></a>
+                    </div>
                 </div>
-            </div>
-            <a href="/" class="logo"><img href = "/images/links/home.svg" alt="Home" class="header_img"></a>
-            <a href="/contact"><img href= "/images/links/contact.svg" alt="Contact" class="header_img"></a>
-            <a href="/about"><img href= "/images/links/about.svg" alt="About" class="header_img"></a>
-            {% block links %}{% endblock %}
-            {% if not logged_in %}
-            <a href="/login"><img src = "/images/links/login.svg" alt="Login" class= "header_img"></a>
-            <a href="/sign_up"><img src = "/images/links/signup.svg" alt="Sign Up" class= "header_img"></a>
-            {% else %}
-            <a href ="/profile"><img src= "/images/links/Profile.svg" alt="Profile" class="header_img"></a>
-            <a href ="/logout"><img src="/images/links/logout.svg" alt="Log Out" class= "header_img"></a>
-            {% endif %}
         </nav>
-    </div>
-    <br>
-    <div id="content">{% block content %}{% endblock %}</div> 
-    <div id="footer">&copy; Copyright 2024 by me</div>
+        <br>
+        <div id="content">{% block content %}{% endblock %}</div> 
+        <div id="footer">&copy; Copyright 2024 by me</div>
+    </body>
 </html>

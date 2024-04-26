@@ -11,6 +11,7 @@ import logging
 app=Flask(__name__)
 app.secret_key = "Proof by induction should always be taught by ducks!"
 socketio=SocketIO(app)
+app.template_folder = "templates"
 #app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=30)
 init_uno_app(app, socketio)
 init_admin_app(app)
@@ -102,4 +103,4 @@ def not_found(e):
         return send_from_directory("uno/images/none", "404.svg")
 """
 if __name__ == '__main__':
-    socketio.run(app, use_reloader=True, log_output=True, port=5000)
+    socketio.run(app, use_reloader=True, log_output=True, port=5000)#, ssl_context="adhoc")

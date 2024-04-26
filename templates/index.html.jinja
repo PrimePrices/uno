@@ -1,7 +1,6 @@
-{% extends base.html.jinja %}
-{% block links %}<source>{% endblock %}
+{% extends "base.html.jinja" %}
+{% block links %}{% endblock %}
 {% block content %}
-    <h1>Index.html</h1>
     <h3>My projects</h3>
     <div class="my_projects">
         <a href = "/fact"><img href="/images/links/fact" alt="Fact of the Day" class="slider_img"></a>
@@ -12,7 +11,7 @@
         <p>Fact of the Day: {{fact}}<p>
         <p>Sources : {{sources}}</p>
         <div id="reactions">
-            {% for i in {{reactions}}%}
+            {% for i in reactions %}
                 <div id="emoji" count=i.count>i.emoji</div>
             {% endfor %}
         </div>

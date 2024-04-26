@@ -13,6 +13,7 @@ body {
   top: 0;
   width:100vw;
   padding: 10px;
+  justify-content: space-between;
   text-align: center;
   outline: black 1px solid;
 }
@@ -26,7 +27,6 @@ body {
   padding-right: 12px;
   text-decoration: none;
   font-size: 18px;
-  line-height: 25px;
   border-radius: 4px;
 }
 
@@ -40,9 +40,7 @@ body {
   font-size: 25px;
   font-weight: bold;
 }
-#header-underlap{
-  height:45px
-}
+
 
 /* Change the background color on mouse-over */
 .header a:hover {
@@ -57,9 +55,7 @@ body {
 }
 
 /* Float the link section to the right */
-.header-right {
-  float: right;
-}
+
 #content{
   margin-top: 50px;
 }
@@ -90,13 +86,14 @@ body {
     float: none;
   }
 }
-
-
+.hamburger_container {
+  position:absolute;
+  top: 0;
+  right:0;
+  margin-right: 30px;
+}
 .hamburger {
-  height: 30px;
-  margin: 5px;
-  display: -ms-grid;
-  display: grid;
+  height: 20px;
   grid-template-rows: repeat(3, 1fr);
   justify-items: center;
   z-index: 120;
@@ -104,7 +101,6 @@ body {
 
 .hamburger div {
   background-color: rgb(61, 61, 61);
-  position: absolute;
   width: 40px;
   height: 5px;
   margin-top: 7px;
@@ -134,26 +130,21 @@ body {
 }
 
 #toggle_hamburger:checked ~ .dropdown {
-  height: 340px;
+  height: auto;
+  display:block flex;
+  flex-flow: column;
 }
 
 .dropdown {
-  width: 100%;
-  background-color: #02173F;
+  position: absolute;
+  background-color: #566581;
   margin: 0;
-  display: -ms-grid;
-  display: grid;
-  grid-template-rows: 1fr repeat(4, 0.5fr);
-  grid-row-gap: 25px;
+  display: none;
   padding: 0;
   list-style: none;
-  clear: both;
   width: auto;
   text-align: center;
-  height: auto;
   overflow: hidden;
-  transition: height .4s ease;
-  z-index: 120;
   -webkit-transition: all 0.3s ease;
   transition: all 0.3s ease;
 }
@@ -165,10 +156,4 @@ body {
 .dropdown a:last-child {
   margin-bottom: 40px;
 }
-.hamburger_container{
-  position:absolute
-  
-}
-.hamburger_container::after{
-  margin-left:40px
-}
+

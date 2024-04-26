@@ -17,3 +17,4 @@ pyvenv.cfg
 # Ignore specific file types
 *.pyc
 *.db
+*.pyc
