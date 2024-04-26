@@ -1,7 +1,7 @@
 from random import shuffle
 from flask import abort
 import sqlite3
-from typing import Literal
+from typing import Any, Literal
 from flask import abort
 
 
@@ -52,10 +52,9 @@ class DBClass:
         return property(getter, setter)
     @staticmethod
     def _database_list(attribute:str, data_type=None) -> property:
-        def getter(self):
-            value=CSVList(table=self.table, entry_uid=self.id, column=attribute, data_type=data_type)
-            return value
-        def setter(self, iterable:list) -> property:
+        def getter(self) -> CSVList:
+            return CSVList(table=self.table, entry_uid=self.id, column=attribute, data_type=data_type)
+        def setter(self, iterable:list) -> None:
             CSVList(iterable=iterable, table=self.table, entry_uid=self.id, column=attribute, data_type=data_type)
         return property(getter, setter)
 class CSVList(list):
@@ -67,6 +66,8 @@ class CSVList(list):
         self.data_type=data_type
         if iterable!=None:
             self.set_list(iterable)
+    def __contains__(self, value):
+        return value in self.get_list()
     def cast_list(self, data):
         if self.data_type==None:
             return data
@@ -129,16 +130,23 @@ class CSVList(list):
         return len(self.get_list())
     def __iter__(self):
         return iter(self.get_list())
+    def __list__(self):
+        return list(self.get_list())
 
 class Player(DBClass):
+    table="hands"
+    position = DBClass._database_property("position")
+    cards= DBClass._database_list("cards", data_type=str)
+    number_of_cards = DBClass._database_property("number_of_cards")
+
     def __init__(self, username:str, game_id=None, row_id=None):
         self.username=username
         cursor,conn=access_db()
         if game_id != None:
-            data = cursor.execute(f"SELECT id FROM {self.table} WHERE username='{self.username}' AND game_id={game_id}").fetchone()
+            data = cursor.execute(f"SELECT id FROM {self.table} WHERE username='{username}' AND game_id={game_id}").fetchone()
             self.game_id=game_id  
         else: 
-            data = cursor.execute(f"SELECT id, game_id FROM {self.table} WHERE username='{self.username}'").fetchone()
+            data = cursor.execute(f"SELECT id, game_id FROM {self.table} WHERE username='{username}'").fetchone()
             self.game_id=data[1]
         conn.close()
         if not data:
@@ -153,10 +161,10 @@ class Player(DBClass):
             return self.number_of_cards
         else:
             raise BaseException(f"Data was invalid, {card=} not in position {card_n} of {self.cards}")
-    table="hands"
-    position = DBClass._database_property("position")
-    cards= DBClass._database_list("cards", data_type=str)
-    number_of_cards = DBClass._database_property("number_of_cards")
+    def __repr__(self) -> str:
+        return f"Player (username: {self.username}, cards: {self.cards}, number_of_cards: {self.number_of_cards}, game_id: {self.game_id}, position: {self.position}, id: {self.id})"
+
+        
 class Game(DBClass):
     table="games"
     number_of_players:property = DBClass._database_property("number_of_players")
@@ -194,16 +202,32 @@ class Game(DBClass):
             else:
                 raise GameException("Game doesn't exist")
     def increment_players(self) -> None:
-        next_player=self.next_player
         if self.direction == 0:
-            self.players = self.players[1:]+self.players[0]
+            self.players = self.players[1:].append(self.players[0])
         else:
-            self.players = self.players[-1]+self.players[:-1]
+            self.players = [self.players[-1]]+self.players[:-1]
         self.next_player=self.players[0]
-    def get_game_info(self) -> dict:
-        rules=self.rules
-        players=self.players
-        #print(f"{str(players)=} {rules=}")
+    def get_game_info(self) -> dict[str, (dict|int|list|str)]:
+        """Returns a dictionary of information about the game
+        
+        Arguments:
+            self {Game} -- The Game object
+        
+        Returns:
+            dict[str, (int|list|str)] -- A dictionary of information about the game
+
+        Dict keys:
+            id:int
+            rules:list
+            number_of_players:int
+            players:dict
+            next_player:str
+            direction:int[0|1]
+            discard:str
+            draw_length:int
+        """
+        rules: list[str]=self.rules
+        players: list[Player]=self.players
         return {"id": self.id, 
                 "rules": rules, 
                 "number_of_players":self.number_of_players, 
@@ -216,7 +240,7 @@ class Game(DBClass):
                 "direction": self.direction, 
                 "discard": card_to_json(self.discard[-1]), 
                 "draw_length": len(self.draw)//2}
-    def get_game_info_personalised(self, username:str) -> dict["str"|"dict"|"list"]:
+    def get_game_info_personalised(self, username:str) -> dict[str, (str|dict|list)]:
         data:dict = self.get_game_info()
         #print(data)
         hand:str = self.get_player_hand(username)
@@ -225,7 +249,7 @@ class Game(DBClass):
         return data
     def get_player_hand(self, username:str) -> str:
         return Player(username, game_id=self.id).cards
-    def add_player(self, username:str) -> player:
+    def add_player(self, username:str) -> Player:
         if username in self.players:
             print("player already in game")
             abort(409)
@@ -248,31 +272,43 @@ class Game(DBClass):
         player=Player(username, game_id=self.id)
         hand = player.cards
         card_str=json_to_card(card)
-        
+        if not self.check_if_card_is_valid(card_str, player):
+            abort(422, description="card invalid")
         cards_left=player.played_a_card(card_str, int(card_n))
+        self.discard.append(card_str)
+        self.increment_players()
         return cards_left
     def check_if_card_is_valid(self, card:str, player) -> bool:
-        player=Player(player, game_id=self.id)
         if card not in player.cards:
-            abort(503, message="card not in hand")
-        value=compare_card(card, self.discard[-1])
+            abort(422, description="card not in hand")
+        value=self.compare_card(card, self.discard[-1])
+        print(f"comparison {value=} between {card=} and {self.discard[-1]=}; {self.next_player=}, {player.__repr__()=}")
         if "anyone_can_play_with_identical_cards" in self.rules and value==2:
             return True
         if bool(value) and self.next_player==player:
             return True
-        else: return False
-    def compare_card(card1, discard) -> int:
-        if card1==discard[0]+discard[1]:
+        if type(player)==Player:
+            if bool(value) and self.next_player==player.username:
+                return True
+        return False
+    def compare_card(self,card, discard)->int: #marker extend for specials
+        if card==discard[0]+discard[1]:
             return 2
         if len(discard)>=3:
-            if card1[0]==discard[2]:
+            if card[0]==discard[2]:
                 return 1
         else:
-            if card[0]==discard[1]:
+            if card[0]==discard[0]:
+                return 1
+            if card[1]==discard[1]:
+                return 1
+            if card[0]=="u":
                 return 1
         if card[1]==discard[1]:
             return 1
         return 0  
+
+
 def make_game(username:str, rules:str|None) -> Game:
     return Game(username=username, create=True, rules=rules)
 def get_player_by_property(attribute:Literal["username", "id"], value:str) -> Player:

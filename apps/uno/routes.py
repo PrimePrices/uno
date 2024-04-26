@@ -63,5 +63,9 @@ def not_found(error):
 def player_error(e):
     return render_template("404_player_not_found.html.jinja")
 @uno_bp.app_errorhandler(405)
-def Not_allowed():
+def Not_allowed(e):
     return render_template("bad_request.html.jinja")
+@uno_bp.app_errorhandler(422)
+def invalid_data(e):
+    print(e, e.description)
+    return render_template("422_invalid_data.html.jinja")
