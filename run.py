@@ -4,6 +4,8 @@ from flask_login import login_required
 from apps.admin.__init__ import init_admin_app
 from apps.uno.__init__ import init_uno_app
 from apps.authentication.__init__ import init_auth_app
+from apps.fact.__init__ import init_fact_app
+from apps.fact import Fact
 from apps.authentication.routes import logout, login, profile, sign_up
 from datetime import timedelta
 from apps.uno.socketing import *
@@ -24,7 +26,7 @@ logger=logging.getLogger("werkzeug")
 
 @app.context_processor
 def inject_variables(): 
-    return {"logged_in":current_user.is_authenticated} 
+    return {"logged_in":current_user.is_authenticated, "Fact": Fact.get_today()} 
 class ExcludeRoutesFilter(logging.Filter):
     def filter(self, record):
         excluded_strings = [
