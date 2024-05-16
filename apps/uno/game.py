@@ -268,14 +268,19 @@ class Game(DBClass):
     def draw_card(self, n:int=1) -> list["str"]:
         self.draw, cards = self.draw[n:], self.draw[:n]
         return cards
-    def player_played_card(self, username: str, card:dict, card_n: int) -> int:
+    def player_played_card(self, username: str, card:dict, card_n: int, colour=None) -> int:
         player=Player(username, game_id=self.id)
         hand = player.cards
         card_str=json_to_card(card)
         if not self.check_if_card_is_valid(card_str, player):
             abort(422, description="card invalid")
         cards_left=player.played_a_card(card_str, int(card_n))
-        self.discard.append(card_str)
+        if card_str in ["u4", "uw"]:
+            if colour not in ["g", "r", "b", "y"]:
+                abort(422, description="colour not provided")
+            self.discard.append(colour+card_str)
+        else:
+            self.discard.append(card_str)
         self.increment_players()
         return cards_left
     def check_if_card_is_valid(self, card:str, player) -> bool:
