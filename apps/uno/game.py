@@ -114,6 +114,9 @@ class CSVList(list):
         r=data.pop(index)
         self.set_list(data)
         return r
+    def reverse(self):
+        list= self.get_list()
+        self.set_list(list.reverse())
     def __setitem__(self, index, item):
         if type(item)==str and "," in item:
             raise TypeError("Text cannot contain a comma")
@@ -207,6 +210,11 @@ class Game(DBClass):
         else:
             self.players = [self.players[-1]]+self.players[:-1]
         self.next_player=self.players[0]
+    def reverse_players():
+        if self.number_of_players == 2:
+            return None
+        self.players.reverse()
+        self.next_player=self.players[0]
     def get_game_info(self) -> dict[str, (dict|int|list|str)]:
         """Returns a dictionary of information about the game
         
@@ -271,16 +279,26 @@ class Game(DBClass):
     def player_played_card(self, username: str, card:dict, card_n: int, colour=None) -> int:
         player=Player(username, game_id=self.id)
         hand = player.cards
-        card_str=json_to_card(card)
+        card_str:str=json_to_card(card)
         if not self.check_if_card_is_valid(card_str, player):
             abort(422, description="card invalid")
         cards_left=player.played_a_card(card_str, int(card_n))
-        if card_str in ["u4", "uw"]:
+        if card_str in ["u4", "uw"]: # check if colour is provided
             if colour not in ["g", "r", "b", "y"]:
                 abort(422, description="colour not provided")
             self.discard.append(colour+card_str)
         else:
             self.discard.append(card_str)
+        
+        if card_str.ends_with("d"):
+            self.next_player.draw(2)
+            self.increment_players()
+        if card_str is "u4":
+            self.next_player.draw(4)
+            self.increment_players
+        if card_str.ends_with("r"):
+            self.reverse()
+            return cards_left
         self.increment_players()
         return cards_left
     def check_if_card_is_valid(self, card:str, player) -> bool:
