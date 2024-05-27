@@ -22,11 +22,12 @@ def has_no_empty_params(rule)->bool:
     defaults = rule.defaults if rule.defaults is not None else ()
     arguments = rule.arguments if rule.arguments is not None else ()
     return len(defaults) >= len(arguments)
+
 logger=logging.getLogger("werkzeug")
 
 @app.context_processor
 def inject_variables(): 
-    return {"logged_in":current_user.is_authenticated, "Fact": Fact.get_today()} 
+    return {"logged_in":current_user.is_authenticated} 
 class ExcludeRoutesFilter(logging.Filter):
     def filter(self, record):
         excluded_strings = [
