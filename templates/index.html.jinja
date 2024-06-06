@@ -6,14 +6,6 @@
         <a href = "/fact"><img href="/images/links/fact" alt="Fact of the Day" class="slider_img"></a>
         <a href = "/uno"><img href="/uno/images/blue/reverse.svg alt="Uno" class="slider_img"></a>
     </div>
-    <div id="Fact">
-        <p class="date">{{date}}</p>
-        <p>Fact of the Day: {{fact}}<p>
-        <p>Sources : {{sources}}</p>
-        <div id="reactions">
-            {% for i in reactions %}
-                <div id="emoji" count=i.count>i.emoji</div>
-            {% endfor %}
-        </div>
+    {{% include "fact.html.jinja" %}}
     </div>
 {% endblock %}
