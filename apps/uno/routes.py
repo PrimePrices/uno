@@ -12,14 +12,17 @@ def newGame(rules):
     user=current_user.username
     game=Game(create=True, username=user, rules=rules)
     return redirect("/uno/game/"+str(game.id))
-@uno_bp.route("/<game_name>/join/")
+@uno_bp.route("/game/<game_name>/join/")
 def join(game_name):
     if current_user.is_authenticated:
         game=Game(game_name)
         game.add_player(current_user.username)
-    return ""
+    return redirect("/uno/game/"+str(game_name))
+@login_required
 @uno_bp.route("/game/<game_name>")
 def render(game_name):
+    if not current_user.is_authenticated:
+        return redirect("/login")
     game=Game(game_name)
     if game:
         return render_template("uno/game.html.jinja", data=game.get_game_info_personalised(current_user.username))

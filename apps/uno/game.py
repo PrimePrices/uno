@@ -75,8 +75,6 @@ class Game(DBClass):
             self.rules=rules
             self.discard=[this_deck.pop()]
             self.add_player(username) # type: ignore
-            """THIS NEEDS TO BE DELETED BEFORE IT ENTERS PRODUCTION!!"""
-            self.add_player("Ryan Kabir")
         else:
             cursor, conn = get_db()
             id=int(id) # type:ignore 

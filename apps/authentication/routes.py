@@ -3,7 +3,7 @@ from flask_login import login_user, current_user, logout_user
 from .models import login_manager, connect_db, User, load_user
 from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
-auth_bp = Blueprint('auth', __name__, static_folder="uno/statics", template_folder="templates/authentication")
+auth_bp = Blueprint('auth', __name__)
 
 
 @auth_bp.route("/logout")
@@ -25,7 +25,7 @@ def login():
         User=load_user(name)
         print(f"{User} is trying to log in")
         if User is None:
-            return render_template("authenticationlogin.html.jinja", username_invalid=True)
+            return render_template("authentication/login.html.jinja", username_invalid=True)
         if User.check_password(password):
             User.authenticated=True
             login_user(User, remember=True)
@@ -52,19 +52,19 @@ def sign_up(cursor, conn):
             return render_template("authentication/sign_up.html.jinja", invalid_format=True)
         cursor.execute(f"SELECT * FROM user WHERE username='{username}'")
         if cursor.fetchone() or "default_" in username:
-            return render_template("signup.html.jinja", username_invalid=True)
+            return render_template("authentication/signup.html.jinja", username_invalid=True)
         if password!=password_again or password is None:
-            return render_template("signup.html.jinja", password_dont_match=True)
+            return render_template("authentication/signup.html.jinja", password_dont_match=True)
         cursor.execute(f"SELECT * FROM user WHERE email='{email}'")
         if cursor.fetchone():
-            return render_template("signup.html.jinja", email_taken=True)
+            return render_template("authentication/signup.html.jinja", email_taken=True)
         h_pass=generate_password_hash(password)
         print(f"{password=} {h_pass=}")
         cursor.execute(f"INSERT INTO user (username, hashed_password, email) VALUES ('{username}', '{h_pass}', '{email}') ")
         conn.commit()
         return "Accepted"
     else:
-        return render_template("signup.html.jinja")
+        return render_template("authentication/signup.html.jinja")
 
 @login_manager.unauthorized_handler
 def unauthorized_callback():
