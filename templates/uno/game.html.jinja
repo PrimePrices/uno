@@ -5,25 +5,34 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.js"></script>
     <script src="/uno/static/script.js"></script>
 {% endblock %}
+
+{%- macro playerCard(username, number_of_cards, hand, you, focus) %}
+    <div class="player" data-you="{{ you }}" name="{{ username }}" focus={{ focus }}>
+        <div id="player-name">{{ username }}</div>
+        <div id="player-hand">
+            {% if hand %}
+                {% for card in hand %}
+                    
+                {% endfor %}
+            {% else %}
+                {% for i in range(number_of_cards) %}
+                    <img src="/uno/images/none/back.svg" data-colour="none" data-value="back" class="card">
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+{%- endmacro %}
+
+{% macro cardCard(colour, value) %}
+    <img class = "card" src="/uno/images/{{colour}}/{{value}}.svg" data-value={{value}} data-colour={{colour}} class="card">
+{%- endmacro %}
+
 {% block content %}
     <div id="opponents">
         {% for player in data.players %}
             {% set info = data.players[player] %}
             {% if info.you == false %}
-                <div class="player" data-you="false" name="{{ player }}">
-                    <div id="player-name">{{ player }}</div>
-                    <div id="player-hand">
-                        {% if info.hand %}
-                            {% for card in info.hand %}
-                                <img class = "card" src="/uno/images/{{card.colour}}/{{card.value}}.svg" data-value={{card.value}} data-colour={{card.colour}} class="card">
-                            {% endfor %}
-                        {% else %}
-                            {% for i in range(info.number_of_cards) %}
-                                <img src="/uno/images/none/back.svg" data-colour="none" data-value="back" class="card">
-                            {% endfor %}
-                        {% endif %}
-                    </div>
-                </div>
+                {{- playerCard(player, info.number_of_cards, info.hand, "false", info.next_player==player) }}
             {% endif %}
         {% endfor %}
     </div>
@@ -44,15 +53,9 @@
         {% for player in data.players %}
             {% set info = data.players[player] %}
             {% if info.you %}
-                <div class="player" data-you="true" name="{{ player }}">
-                    <div id="player-name">{{ player }}</div>
-                    <div id="player-hand">
-                        {% for card in info.hand %}
-                            <img class = "card clickable" src="/uno/images/{{card.colour}}/{{card.value}}.svg" data-value={{card.value}} data-colour={{card.colour}}>
-                        {% endfor %}
-                    </div>
-                </div>
+                {{- playerCard(player, info.number_of_cards, info.hand, "true", data.next_player==player) }}
             {% endif %}
+            <p>{{ data.next_player }} </p>
         {% endfor %}
     </div>
 {% endblock %}
