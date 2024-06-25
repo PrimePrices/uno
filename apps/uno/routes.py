@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, send_from_directory, request, redirect
+from flask import Blueprint, render_template, send_from_directory, request, redirect, flash
 from .game import *
 from json import loads
 from flask_login import login_required, current_user
@@ -22,7 +22,7 @@ def join(game_name):
 @uno_bp.route("/game/<game_name>")
 def render(game_name):
     if not current_user.is_authenticated:
-        return redirect("/login")
+        return redirect("/login?next=/uno/game/"+str(game_name))
     game=Game(game_name)
     if game:
         return render_template("uno/game.html.jinja", data=game.get_game_info_personalised(current_user.username))
@@ -56,9 +56,6 @@ def get_svg(colour, value):
         return send_from_directory(f"apps/uno/images/{colour}", value)
     else: 
         return send_from_directory("apps/uno/images/none", "404.svg")
-@uno_bp.route("/favicon.ico")
-def favicon():
-    return send_from_directory("apps/uno/images/blue", "reverse.svg")
 @uno_bp.app_errorhandler(404)
 def not_found(error):
     return send_from_directory("apps/uno/images/none", "404.svg")
@@ -72,3 +69,14 @@ def Not_allowed(e):
 def invalid_data(e):
     print(e, e.description)
     return render_template("422_invalid_data.html.jinja")
+
+@uno_bp.app_errorhandler(CardInvalidException)
+def Unplayable(error):
+    print("This card cannot be played at this moment error raised")
+    flash("This card cannot be played at this moment")
+    return ""
+@uno_bp.app_errorhandler(ColourNotProvidedException)
+def ColourError(error):
+    print("Colour not provided error raised")
+    flash("Colour not provided")
+    return ""

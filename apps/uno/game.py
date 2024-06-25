@@ -16,7 +16,10 @@ class PlayerException(Exception):
     pass
 class GameException(Exception):
     pass
-
+class CardInvalidException(Exception):
+    pass
+class ColourNotProvidedException(Exception):
+    pass
 
 class Player(DBClass):
     table="hands"
@@ -46,6 +49,9 @@ class Player(DBClass):
             return self.number_of_cards
         else:
             raise BaseException(f"Data was invalid, {card=} not in position {card_n} of {self.cards}")
+    def drew_a_card(self, card:str):
+        self.number_of_cards=self.number_of_cards+1
+        self.cards.append(card)
     def __repr__(self) -> str:
         return f"Player (username: {self.username}, cards: {self.cards}, number_of_cards: {self.number_of_cards}, game_id: {self.game_id}, position: {self.position}, id: {self.id})"
 
@@ -74,6 +80,8 @@ class Game(DBClass):
             self.draw=this_deck
             self.rules=rules
             self.discard=[this_deck.pop()]
+            while self.discard[-1][0]=="u":
+                self.discard.append(this_deck.pop())
             self.add_player(username) # type: ignore
         else:
             cursor, conn = get_db()
@@ -85,11 +93,16 @@ class Game(DBClass):
             else:
                 raise GameException("Game doesn't exist")
     def increment_players(self) -> None:
+        print(f"""incrementing players, 
+            old player: {self.next_player},
+            {self.players[0]=}, 
+            {self.players.get_list()=}""")
         if self.direction == 0:
             self.players = self.players[1:].append(self.players[0])
         else:
             self.players = [self.players[-1]]+self.players[:-1]
         self.next_player=self.players[0]
+        print(f"{self.next_player=}")
     def reverse_players(self):
         if self.number_of_players == 2:
             return None
@@ -154,6 +167,8 @@ class Game(DBClass):
         player.cards=hand
         return player
     def draw_card(self, n:int=1) -> list["str"]:
+        """Returns a list of cards drawn from the draw pile of length n
+        Default n=1"""
         self.draw, cards = self.draw[n:], self.draw[:n]
         return cards
     def player_played_card(self, username: str, card:dict, card_n: int, colour=None) -> int:
@@ -161,11 +176,11 @@ class Game(DBClass):
         hand = player.cards
         card_str:str=json_to_card(card)
         if not self.check_if_card_is_valid(card_str, player):
-            abort(422, description="card invalid")
+            raise CardInvalidException("card invalid")
         cards_left=player.played_a_card(card_str, int(card_n))
-        if card_str in ["u4", "uw"]: # check if colour is provided
+        if card_str in ["u4", "uw", "u1"]: # check if colour is provided
             if colour not in ["g", "r", "b", "y"]:
-                abort(422, description="colour not provided")
+                raise ColourNotProvidedException("colour not provided")
             else:
                 self.discard.append(colour+card_str) #type:ignore
         else:
@@ -173,12 +188,12 @@ class Game(DBClass):
         next_player=Player(self.next_player, game_id=self.id)
         if card_str[-1] == "d":
             for i in range(2):
-                next_player.cards.append(self.draw_card())
+                next_player.drew_a_card(self.draw_card()[0])
 
             self.increment_players()
         if card_str is "u4":
             for i in range(4):
-                next_player.cards.append(self.draw_card())
+                next_player.cards.append(self.draw_card()[0])
             self.increment_players
         if card_str[-1] == "r":
             self.reverse_players()

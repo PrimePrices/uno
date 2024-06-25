@@ -6,7 +6,7 @@ from apps.uno.__init__ import init_uno_app
 from apps.authentication.__init__ import init_auth_app
 from apps.fact.__init__ import init_fact_app
 from apps.fact import Fact
-from apps.authentication.routes import logout, login, profile, sign_up
+from resources import init_defaults
 from datetime import timedelta
 from apps.uno.socketing import *
 import logging
@@ -15,6 +15,7 @@ app.secret_key = "Proof by induction should always be taught by ducks!"
 socketio=SocketIO(app)
 app.template_folder = "templates"
 #app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=30)
+init_defaults(app)
 init_uno_app(app, socketio)
 init_admin_app(app)
 init_auth_app(app)
@@ -54,58 +55,6 @@ def site_map()->list:
 def index():
     print(f"{current_user.is_authenticated=}")
     return render_template("index.html.jinja")
-@app.route("/static/<anything>")
-def get(anything):
-    return send_from_directory("statics", anything)
-@app.route("/images/links/<anything>.svg")
-def get_svg(anything):
-    return send_from_directory("images/links", anything+".svg")
-@app.route("/login")
-def Login():
-    return login()
-@app.route("/logout")
-def Logout():
-    return logout()
-@app.route("/profile")
-def Profile():
-    return profile()
-@app.route("/sign-up")
-@app.route("/signup")
-@app.route("/sign_up")
-def SignUp():
-    return sign_up() # type: ignore
-@app.route("/images/<anything>.svg")
-def svg_symbol(anything):
-    print(anything)
-    return send_from_directory("images", anything+".svg")
 
-#errors
-@app.route("/brew-coffee")
-@app.route("/coffee")
-@app.route("/coffee_pot")
-@app.route("/BrewCoffee")
-def Coffee():
-    abort(418)
-@app.route("/lake")
-def Lake():
-    abort(-41)
-@app.route("/favicon.ico")
-def favicon():
-    return send_from_directory("apps/uno/images/blue", "reverse.svg")
-"""
-@app.errorhandler(703)
-def exceptions(error):
-    print(error)
-    return redirect("https://xkcd.com/1024/")
-"""
-"""
-@app.errorhandler(404)
-def not_found(e):
-    print(e)
-    if str(e)=="no exception for -41":
-        return send_from_directory("uno/images/none", "404.svg")
-    else:
-        return send_from_directory("uno/images/none", "404.svg")
-"""
 if __name__ == '__main__':
     socketio.run(app, use_reloader=True, log_output=True, port=5000)#, ssl_context="adhoc")

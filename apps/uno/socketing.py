@@ -3,7 +3,8 @@ from flask_socketio import emit, join_room, leave_room, disconnect
 from flask_login import current_user, login_required
 from flask import abort, request
 from .game import *
-
+def flash(message):
+    emit("flash", {"message": message}, namespace="/", to=request.sid)
 
 def authenticate_only(f): # wrapper
     def wrapped(*args, **kwargs):
@@ -20,7 +21,7 @@ def register_routes(socketio):
         data=data["info"]
         if data["action"] == "player_played_a_card":
             game=Game(game_name)
-            cards_left=game.player_played_card(current_user.username, data["card"], data["card_n"])
+            cards_left:int=game.player_played_card(current_user.username, data["card"], data["card_n"])
             transmit(str(game_name), 
                      data["action"], 
                      current_user.username, 
@@ -29,7 +30,7 @@ def register_routes(socketio):
             game=Game(game_name)
             card=game.draw_card()
             player=Player(current_user.username, game_id=game.id)
-            player.cards.append(card[0])
+            player.drew_a_card(card[0])
             transmit(str(game_name), 
                      data["action"], 
                      current_user.username, 
@@ -58,6 +59,19 @@ def register_routes(socketio):
     def message(json: dict) -> None:
         print(f"recieved {json=}")
     print("routes registered for socketio")
+    @socketio.on_error(ColourNotProvidedException)
+
+    @socketio.on_error_default
+    def DefaultErrorHandler(error):
+        print(error)
+        if str(error)=="card invalid":
+            print("Card invalid error raised (socketio)")
+            flash("Card invalid")
+        elif str(error)=="colour not provided":
+            print("Colour not provided error raised (socketio)")
+            print(error)
+            flash("Please provide colour")
+
 def transmit(game, action, user, other_details={}, exclue_request_sid=False, request_sid= None, private_message=None):
     if action in ["player_joined","player_said_uno", "player_left", "player_won", "player_drew_a_card", "player_reversed_direction", "players_turn", "you_won"]:
         data = {"player": user}

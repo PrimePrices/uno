@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="icon" type="image/x-icon" href="/uno/images/blue/reverse.svg">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type ="text/css" href="/static/base.css">
+    <link rel="stylesheet" type="text/css" href="/static/base.css">
     {% block statics %}{% endblock %}
 </head>
     <body>
         <nav class="header">
-                <a href="/" class="logo"><img href = "/images/links/home.svg" alt="Home" class="header_img"></a>
-                <a href="/contact"><img href= "/images/links/contact.svg" alt="Contact" class="header_img"></a>
-                <a href="/about"><img href= "/images/links/about.svg" alt="About" class="header_img"></a>
+                <a href="/"><img src="/images/header/home.svg" alt="Home" class="header_img"></a>
+                <a href="/contact"><img src= "/images/header/contact.svg" alt="Contact" class="header_img"></a>
+                <a href="/about"><img src= "/images/header/about.svg" alt="About" class="header_img"></a>
                 {% block links %}{% endblock %}
                 {% if not logged_in %}
-                    <a href="/login"><img src = "/images/links/login.svg" alt="Login" class= "header_img"></a>
-                    <a href="/sign-up"><img src = "/images/links/signup.svg" alt="Sign Up" class= "header_img"></a>
+                <a href="/login"><img src="/images/header/login.svg" alt="Login" class= "header_img"></a>
+                <a href="/sign-up"><img src="/images/header/signup.svg" alt="Sign Up" class= "header_img"></a>
                 {% else %}
-                    <a href ="/profile"><img src= "/images/links/profile.svg" alt="Profile" class="header_img"></a>
-                    <a href ="/logout"><img src="/images/links/logout.svg" alt="Log Out" class= "header_img"></a>
+                <a href ="/profile"><img src="/images/header/profile.svg" alt="Profile" class="header_img"></a>
+                <a href ="/logout"><img src="/images/header/logout.svg" alt="Log Out" class= "header_img"></a>
                 {% endif %}
                 <div class="hamburger_container">
                     <input id="toggle_hamburger" type="checkbox" />

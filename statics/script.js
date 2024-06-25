@@ -1,14 +1,13 @@
 blank={colour:"none", value:"back"}
 function load_card({colour, value}) {
-    const card = document.createElement("div");
-    card.className = "card";
+
     const img = document.createElement("img");
+    img.className = "card";
     img.addEventListener("click", clicked_card);
     img.src = `/uno/images/${colour}/${value}.svg`;
     img.setAttribute("data-value", value);
     img.setAttribute("data-colour", colour);
-    card.appendChild(img);
-    return card;
+    return img;
 }
 function get_game_id(){
     return new URL(window.location).pathname.split("/")[3]
@@ -141,6 +140,10 @@ socket.on("connect", function(){
 })
 socket.on("disconnect", function(){
     console.log("disconnected")
+})
+socket.on("flash", function(data){
+    console.log(data)
+    alert(data.message)
 })
 socket.on('update_game_state', function(data) {
     let player;

@@ -12,11 +12,11 @@
         <div id="player-hand">
             {% if hand %}
                 {% for card in hand %}
-                    
+                    {{- cardCard(card.colour, card.value) }}
                 {% endfor %}
             {% else %}
                 {% for i in range(number_of_cards) %}
-                    <img src="/uno/images/none/back.svg" data-colour="none" data-value="back" class="card">
+                    {{- cardCard("none", "back") }}
                 {% endfor %}
             {% endif %}
         </div>
@@ -24,7 +24,7 @@
 {%- endmacro %}
 
 {% macro cardCard(colour, value) %}
-    <img class = "card" src="/uno/images/{{colour}}/{{value}}.svg" data-value={{value}} data-colour={{colour}} class="card">
+    <img class="card" src="/uno/images/{{colour}}/{{value}}.svg" data-value={{value}} data-colour={{colour}} class="card">
 {%- endmacro %}
 
 {% block content %}
