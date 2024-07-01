@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, send_from_directory, request, redi
 from .game import *
 from json import loads
 from flask_login import login_required, current_user
-uno_bp = Blueprint("uno", __name__)
+uno_bp = Blueprint("uno", __name__, static_folder="apps/uno/statics", url_prefix="/uno")
 from .socketing import transmit
 
 special_cards={"u0":"blank","u1":"wild","u2":"N/A","u3":"N/A","u4":"draw4","u5":"N/A","u6":"N/A","u7":"N/A","u8":"N/A","u9":"N/A"}
@@ -28,14 +28,14 @@ def render(game_name):
         return render_template("uno/game.html.jinja", data=game.get_game_info_personalised(current_user.username))
     else:
         abort(404)
-@uno_bp.route("/game/personalised/<game_name>/.json")
+@uno_bp.route("/game/personalised/<game_name>/.json", methods=["GET"])
 @uno_bp.route("/game/<game_name>/personalised.json", methods=["GET"])
 def render_json_personalised(game_name):
     user = current_user.username
     return Game(game_name).get_game_info_personalised(user)
 
     # info structure = {"id":, "rules", "number_of_players", "players": data, "next_player":, "direction":, "discard":, "draw":}
-@uno_bp.route("/game/<game_name>.json")
+@uno_bp.route("/game/<game_name>.json", methods=["GET"])
 def render_json(game_name):
     return Game(game_name).get_game_info()
     # info structure = {"id":, "rules", "number_of_players", "players": data, "next_player":, "direction":, "discard":, "draw":}
@@ -45,10 +45,16 @@ def start():
     return render_template("uno/create.html.jinja")
 
 
+
+
 #images and resources
-@uno_bp.route("/static/<anything>", methods=["GET"])
+@uno_bp.route("/static/style/<anything>.css", methods=["GET"])
 def get(anything):
-    return send_from_directory("statics", anything)
+    print("Styles accessed")
+    return send_from_directory("statics/styles", anything+".css")
+@uno_bp.route("/static/script/<anything>", methods=["GET"])
+def get_scripts(anything):
+    return send_from_directory("statics/scripts", anything)
 @uno_bp.route("/images/<colour>/<value>.svg")
 def get_svg(colour, value):
     value=value+".svg"

@@ -16,8 +16,8 @@ def todays_fact():
     tags=fact[1].split(",")
     conn.close()
     return render_template("fact.html.jinja", year=year, month=month, day=day, fact_text=fact[0], tags=tags)
-@fact_bp.route("/archive/<year:int>/<month:int>/<day:int>")
 @login_required
+@fact_bp.route("/archive/<int:year>/<int:month>/<int:day>")
 def archived_fact(year:int, month:int, day:int):
     cursor, conn=get_db()
     fact=cursor.execute("SELECT text, tags, sources FROM facts WHERE year={year} AND month={month} AND day={day}").fetchone()

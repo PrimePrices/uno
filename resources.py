@@ -1,12 +1,14 @@
 from flask import send_from_directory, abort, render_template
 from apps.authentication.routes import logout, login, profile, sign_up
 def init_defaults(app):
-    @app.route("/static/<anything>")
-    def get(anything):
-        return send_from_directory("statics", anything)
+    @app.route("/static/scripts/<anything>")
+    def get_scripts(anything):
+        return send_from_directory("statics/scripts", anything)
+    @app.route("/static/styles/<anything>")
+    def get_styles(anything):
+        return send_from_directory("statics/styles", anything)
     @app.route("/images/header/<anything>.svg")
     def get_svg(anything):
-        print("svg_loaded")
         return send_from_directory("images/header", anything+".svg")
     @app.route("/login")
     def Login():
@@ -27,7 +29,6 @@ def init_defaults(app):
         return sign_up() # type: ignore
     @app.route("/images/<anything>.svg")
     def svg_symbol(anything):
-        print(anything)
         return send_from_directory("images", anything+".svg")
 
     #errors

@@ -19,6 +19,7 @@ init_defaults(app)
 init_uno_app(app, socketio)
 init_admin_app(app)
 init_auth_app(app)
+#init_fact_app(app)
 def has_no_empty_params(rule)->bool:
     defaults = rule.defaults if rule.defaults is not None else ()
     arguments = rule.arguments if rule.arguments is not None else ()
@@ -34,8 +35,9 @@ class ExcludeRoutesFilter(logging.Filter):
         excluded_strings = [
             "GET /uno/images/",
             "GET /uno/favicon.ico",
-            "GET /uno/static/",
-            "GET /static/"]
+            "GET /favicon.ico",
+            "GET /static/",
+            "GET /images/header/"]
         for i in excluded_strings:
             if i in record.getMessage():
                 return False
@@ -43,12 +45,13 @@ class ExcludeRoutesFilter(logging.Filter):
 logger.addFilter(ExcludeRoutesFilter())
 @app.route("/site-map")
 def site_map()->list:
-    links = []
+    links = {}
     for rule in app.url_map.iter_rules():  
-        if "GET" in rule.methods and has_no_empty_params(rule): # type: ignore
+        if "GET" in rule.methods:# and has_no_empty_params(rule): # type: ignore
+            print(rule.endpoint)
             url = url_for(rule.endpoint, **(rule.defaults or {}))
-            links.append((url, rule.endpoint))
-    return links
+            links[url] = rule.endpoint
+    return [links]
     # links is now a list of url, endpoint tuples
 @app.route("/")
 @app.route("/index")
@@ -57,4 +60,4 @@ def index():
     return render_template("index.html.jinja")
 
 if __name__ == '__main__':
-    socketio.run(app, use_reloader=True, log_output=True, port=5000)#, ssl_context="adhoc")
+    socketio.run(app, use_reloader=False, log_output=True, port=5000)#, ssl_context="adhoc")
