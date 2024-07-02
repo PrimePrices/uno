@@ -3,7 +3,7 @@ from flask_login import login_user, current_user, logout_user
 from .models import login_manager, connect_db, User, load_user
 from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
-auth_bp = Blueprint('auth', __name__)
+auth_bp = Blueprint('auth', __name__, template_folder="templates")
 
 
 @auth_bp.route("/logout")
@@ -25,7 +25,7 @@ def login():
         User=load_user(name)
         print(f"{User} is trying to log in")
         if User is None:
-            return render_template("authentication/login.html.jinja", username_invalid=True)
+            return render_template("login.html.jinja", username_invalid=True)
         if User.check_password(password):
             User.authenticated=True
             login_user(User, remember=True)
@@ -35,8 +35,8 @@ def login():
             return redirect(next or "/index")
         else:
             print(f"{password=}")
-            return render_template("authentication/login.html.jinja", password_invalid=True)
-    return render_template("authentication/login.html.jinja")
+            return render_template("login.html.jinja", password_invalid=True)
+    return render_template("login.html.jinja")
 
 @auth_bp.route("/sign_up", methods=["GET", "POST"])
 @connect_db

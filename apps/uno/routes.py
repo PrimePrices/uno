@@ -2,8 +2,10 @@ from flask import Blueprint, render_template, send_from_directory, request, redi
 from .game import *
 from json import loads
 from flask_login import login_required, current_user
-uno_bp = Blueprint("uno", __name__, static_folder="apps/uno/statics", url_prefix="/uno")
-from .socketing import transmit
+
+
+uno_bp = Blueprint("uno", __name__, static_folder="apps/uno/static", url_prefix="/uno", template_folder="templates")
+
 
 special_cards={"u0":"blank","u1":"wild","u2":"N/A","u3":"N/A","u4":"draw4","u5":"N/A","u6":"N/A","u7":"N/A","u8":"N/A","u9":"N/A"}
 
@@ -25,7 +27,8 @@ def render(game_name):
         return redirect("/login?next=/uno/game/"+str(game_name))
     game=Game(game_name)
     if game:
-        return render_template("uno/game.html.jinja", data=game.get_game_info_personalised(current_user.username))
+        print(game.get_game_info_personalised(current_user.username))
+        return render_template("game.html.jinja", data=game.get_game_info_personalised(current_user.username))
     else:
         abort(404)
 @uno_bp.route("/game/personalised/<game_name>/.json", methods=["GET"])
@@ -42,29 +45,30 @@ def render_json(game_name):
 @login_required
 @uno_bp.route("/")
 def start():
-    return render_template("uno/create.html.jinja")
+    return render_template("create.html.jinja")
 
 
 
 
 #images and resources
-@uno_bp.route("/static/style/<anything>.css", methods=["GET"])
-def get(anything):
-    print("Styles accessed")
-    return send_from_directory("statics/styles", anything+".css")
-@uno_bp.route("/static/script/<anything>", methods=["GET"])
-def get_scripts(anything):
-    return send_from_directory("statics/scripts", anything)
-@uno_bp.route("/images/<colour>/<value>.svg")
-def get_svg(colour, value):
-    value=value+".svg"
-    if colour in ["blue", "red", "yellow", "green", "none"]: 
-        return send_from_directory(f"apps/uno/images/{colour}", value)
+@uno_bp.route("/static/<folder>/<anything>", methods=["GET"])
+def get_static(folder, anything):
+    if folder == "script":
+        return send_from_directory("apps/uno/static/script", anything)
+    elif folder == "style":
+        return send_from_directory("apps/uno/static/style", anything)
+    elif folder == "image":
+        return send_from_directory("apps/uno/static/image", anything)
     else: 
-        return send_from_directory("apps/uno/images/none", "404.svg")
+        abort(404)
+@uno_bp.route("/static/image/<colour>/<anything>.svg", methods=["GET"])
+@uno_bp.route("/image/<colour>/<anything>.svg", methods=["GET"])
+def get_image(colour, anything):
+    return send_from_directory(f"apps/uno/static/image/{colour}", anything+".svg")
+
 @uno_bp.app_errorhandler(404)
 def not_found(error):
-    return send_from_directory("apps/uno/images/none", "404.svg")
+    return send_from_directory("apps/uno/static/image/none", "404.svg")
 @uno_bp.app_errorhandler(PlayerException) # type: ignore
 def player_error(e):
     return render_template("404_player_not_found.html.jinja")

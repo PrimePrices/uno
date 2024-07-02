@@ -34,10 +34,12 @@ class ExcludeRoutesFilter(logging.Filter):
     def filter(self, record):
         excluded_strings = [
             "GET /uno/images/",
+            "GET /uno/static/",
             "GET /uno/favicon.ico",
             "GET /favicon.ico",
             "GET /static/",
-            "GET /images/header/"]
+            "GET /images/header/",
+            "GET /socket.io/"]
         for i in excluded_strings:
             if i in record.getMessage():
                 return False
@@ -45,13 +47,17 @@ class ExcludeRoutesFilter(logging.Filter):
 logger.addFilter(ExcludeRoutesFilter())
 @app.route("/site-map")
 def site_map()->list:
-    links = {}
+    links = []
     for rule in app.url_map.iter_rules():  
         if "GET" in rule.methods:# and has_no_empty_params(rule): # type: ignore
-            print(rule.endpoint)
-            url = url_for(rule.endpoint, **(rule.defaults or {}))
-            links[url] = rule.endpoint
-    return [links]
+            if has_no_empty_params(rule):
+                url = url_for(rule.endpoint, **(rule.defaults or {}))
+                links.append(url)
+            else:
+                print(rule, rule.endpoint)
+                links.append([rule.endpoint, list(rule.arguments)])
+    print(links)
+    return links
     # links is now a list of url, endpoint tuples
 @app.route("/")
 @app.route("/index")

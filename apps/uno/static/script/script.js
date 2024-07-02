@@ -1,10 +1,9 @@
 blank={colour:"none", value:"back"}
 function load_card({colour, value}) {
-
     const img = document.createElement("img");
     img.className = "card";
     img.addEventListener("click", clicked_card);
-    img.src = `/uno/images/${colour}/${value}.svg`;
+    img.src = `/uno/static/image/${colour}/${value}.svg`;
     img.setAttribute("data-value", value);
     img.setAttribute("data-colour", colour);
     return img;
@@ -46,7 +45,7 @@ function add_event_listener_to_cards(){
 function player_played_card(data){
     console.log(data)
     var username = data["player"]
-    var card = data["card"]
+    var card_data = data["card"]
     var card_n = data["card_n"]
     var cards_left=data["cards_left"]
     const div=get_player(username)
@@ -55,7 +54,7 @@ function player_played_card(data){
     console.log("card played")
     hand.removeChild(card)
     const discard = document.getElementById("discard")
-    card.classList.remove("clickable")
+    card=load_card(card_data)
     while (!(discard.firstChild in [" "])) {
         console.log(discard, discard.firstChild)
         if (discard.firstChild!=null){
@@ -171,16 +170,14 @@ socket.on('update_game_state', function(data) {
             console.log(data)
             if (data.player!==get_my_name()){ //need to now get my username
                 player = get_player(data.player)    
-                player.children[2].append(load_card({colour:"none", value:"back"}))
+                player.children[1].append(load_card({colour:"none", value:"back"}))
                 console.log(get_player(data.player))
             } else {
-                console.log("admin drew a card")
+                console.log("You drew a card")
             }
             //username draw_length
             break;
-        case "your_turn":
-            //none
-            break;
+
         case "you_drew_a_card":
             console.log(data)
             player = document.getElementById("myHand").children[0]

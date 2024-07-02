@@ -3,7 +3,7 @@ from flask import abort
 from typing import Any, Literal
 from flask import abort
 from .db import get_db, DBClass, CSVList
-
+from .transmit import transmit
 
 def card_to_json(string:str) -> dict:
     return {"colour": {"g": "green", "b": "blue", "y":"yellow", "r":"red", "u": "none"}[string[0]],
@@ -86,23 +86,30 @@ class Game(DBClass):
         else:
             cursor, conn = get_db()
             id=int(id) # type:ignore 
+            print(id)
             data=cursor.execute(f'SELECT id FROM {self.table} WHERE id="{id}"').fetchone()
             conn.close()
             if data:
                 self.id=int(id)
             else:
+                print(f"{id=}")
                 raise GameException("Game doesn't exist")
     def increment_players(self) -> None:
         print(f"""incrementing players, 
             old player: {self.next_player},
-            {self.players[0]=}, 
-            {self.players.get_list()=}""")
+            {self.players[0].username=}, 
+            {[player.username for player in self.players.get_list()]},
+            {self.direction=}""")
         if self.direction == 0:
-            self.players = self.players[1:].append(self.players[0])
+            players=self.players[:]
+            players.append(players.pop(0))
+            print(f"{players=}")
+            self.players = players
         else:
             self.players = [self.players[-1]]+self.players[:-1]
         self.next_player=self.players[0]
         print(f"{self.next_player=}")
+        transmit(self.id, "players_turn", self.next_player)
     def reverse_players(self):
         if self.number_of_players == 2:
             return None
@@ -133,7 +140,7 @@ class Game(DBClass):
                 "rules": rules, 
                 "number_of_players":self.number_of_players, 
                 "players": {player.username: 
-                                {"number_of_cards": player.number_of_cards, 
+                                {"number_of_cards": len(self.get_player_hand(player.username)), 
                                  "position": player.position, 
                                  "you": False} 
                             for player in players}, 
@@ -191,7 +198,7 @@ class Game(DBClass):
                 next_player.drew_a_card(self.draw_card()[0])
 
             self.increment_players()
-        if card_str is "u4":
+        if card_str == "u4":
             for i in range(4):
                 next_player.cards.append(self.draw_card()[0])
             self.increment_players

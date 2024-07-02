@@ -1,18 +1,19 @@
-from flask import send_from_directory, abort, render_template
+from flask import send_from_directory, abort, render_template, redirect
 from apps.authentication.routes import logout, login, profile, sign_up
 def init_defaults(app):
-    @app.route("/static/scripts/<anything>")
-    def get_scripts(anything):
-        return send_from_directory("statics/scripts", anything)
-    @app.route("/static/styles/<anything>")
-    def get_styles(anything):
-        return send_from_directory("statics/styles", anything)
-    @app.route("/images/header/<anything>.svg")
-    def get_svg(anything):
-        return send_from_directory("images/header", anything+".svg")
+    @app.route("/static/<folder>/<anything>")
+    def get_static(folder, anything):
+        if folder == "script":
+            return send_from_directory("static/script", anything)
+        elif folder == "style":
+            return send_from_directory("static/style", anything)
+        elif folder == "image":
+            return send_from_directory("static/image/header", anything)
+        else: 
+            abort(404)
     @app.route("/login")
     def Login():
-        return login()
+        return redirect("/auth/login")
     @app.route("/about")
     def About():
         render_template("about.html.jinja")
@@ -27,9 +28,7 @@ def init_defaults(app):
     @app.route("/sign_up")
     def SignUp():
         return sign_up() # type: ignore
-    @app.route("/images/<anything>.svg")
-    def svg_symbol(anything):
-        return send_from_directory("images", anything+".svg")
+
 
     #errors
     @app.route("/brew-coffee")
@@ -43,7 +42,7 @@ def init_defaults(app):
         abort(-41)
     @app.route("/favicon.ico")
     def favicon():
-        return send_from_directory("apps/uno/images/blue", "reverse.svg")
+        return send_from_directory("apps/uno/static/image/blue", "reverse.svg")
     """
     @app.errorhandler(703)
     def exceptions(error):
