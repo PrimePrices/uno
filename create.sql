@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS hands (
     cards TEXT,
     username TEXT,
     number_of_cards INT DEFAULT 7,
+    FOREIGN KEY (username) REFERENCES user(username),
     FOREIGN KEY (game_id)  REFERENCES games(game_id)
 );
 CREATE TABLE IF NOT EXISTS games(

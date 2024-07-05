@@ -33,6 +33,7 @@ class User(UserMixin):
 
 @login_manager.user_loader
 def load_user(user_id):
+    print(f"loading user {user_id}")
     conn=get_db()
     if user_id.isdigit():
         user = conn.execute("SELECT * FROM user WHERE user_id = ?", (int(user_id),)).fetchone()
@@ -40,5 +41,6 @@ def load_user(user_id):
         user = conn.execute("SELECT * FROM user WHERE username = ?", (user_id,)).fetchone()
     conn.close()
     if user is None:
+        print("user not found")
         return None
     return User(user[0], user[1], user[2], user[3])

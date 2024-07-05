@@ -93,6 +93,7 @@ class Game(DBClass):
                 print(f"{id=}")
                 raise GameException("Game doesn't exist")
     def increment_players(self) -> None:
+
         print(f"""incrementing players, 
             old player: {self.next_player},
             {self.players[0].username=}, 
@@ -156,13 +157,15 @@ class Game(DBClass):
     def get_player_hand(self, username:str) -> str:
         return Player(username, game_id=self.id).cards
     def add_player(self, username:str) -> Player:
+        conn = get_db()
+        data = conn.execute(f"SELECT hand_id FROM hands WHERE username='{username}' AND game_id={self.id}").fetchone()
         if username in self.players:
             print("player already in game")
             abort(409)
         self.players.append(username)
         self.number_of_players=self.number_of_players+1
         hand=self.draw_card(n=7)
-        conn = get_db()
+        
         id = conn.execute(f'''INSERT INTO hands(position, game_id, username, number_of_cards) VALUES 
                           ({self.number_of_players}, {self.id}, "{username}", 7)''').lastrowid
         #print(f"{id=}")
