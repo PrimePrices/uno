@@ -25,10 +25,21 @@
 {%- endmacro %}
 
 {% macro cardCard(colour, value, clickable=false) %}
-    <img class="card"+{% if clickable %} "clickable"{% endif %} src="/uno/static/image/{{colour}}/{{value}}.svg" data-value={{value}} data-colour={{colour}} class="card">
-{%- endmacro %}
+    <img class="card {% if clickable %} clickable{% endif %}" src="/uno/static/image/{{colour}}/{{value}}.svg" data-value={{value}} data-colour={{colour}} class="card">
+{% endmacro %}
 
+{% macro popup(colours) %}
+    <div id="popup">
+        <h3>Pick a colour</h3>
+        <div id="colours">
+            {% for colour in colours %}
+                <img src="/uno/static/image/{{colour}}/back.svg" class="card colour clickable" data-colour={{colour}}>
+            {% endfor %}
+        </div>
+    </div>
+{% endmacro %}
 {% block content %}
+    {{- popup(["red", "blue", "green", "yellow"]) -}}
     <div id="opponents">
         {% for player in data.players %}
             {% set info = data.players[player] %}

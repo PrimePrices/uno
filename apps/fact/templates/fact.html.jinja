@@ -1,0 +1,41 @@
+{% extends "base.html.jinja" %}
+{% block statics %}
+    <link rel="stylesheet" href="/fact/static/style/fact.css">
+    <title>Fact of the Day</title>
+    <link rel="stylesheet" type ="text/css" href="/fact/static/style/calendar.css">
+{% endblock %}
+
+{%- macro calendar(year, month, day) -%}
+    <div class="calendar">
+        <img>Arrow{{year}}<img>Arrow
+        <img>Arrow{{month}}<img>Arrow
+        <table>
+            <thead>
+                <tr>
+                    <th>Sun</th>
+                    <th>Mon</th>
+                    <th>Tue</th>
+                    <th>Wed</th>
+                    <th>Thu</th>
+                    <th>Fri</th>
+                    <th>Sat</th>
+                </tr>
+            </thead>
+            <tbody id="calendar-body"></tbody>
+        </table>
+    </div>
+{%- endmacro -%}
+
+{%- macro render_fact(year, month, day, fact, source, tags) -%}
+    <div class="fact">
+        {{- calendar(year, month, day) -}}
+        <p class="fact-text">{{ fact }}</p>
+        <p class="fact-source">{{ source }}</p>
+        <p class="fact-tags">{tags}</p>
+    <div/>
+{%- endmacro -%}
+{% block content %}
+    <h1>Fact of the Day</h1>
+    {{- render_fact(year, month, day, fact_text, source, tags) -}}
+    <script src="/fact/static/script/calendar.js" ></script>
+{% endblock %}

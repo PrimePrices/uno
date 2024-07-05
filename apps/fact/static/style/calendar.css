@@ -1,0 +1,39 @@
+/* CSS for the calendar */
+        .calendar {
+            width: min-content;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: rgb(29, 29, 29);
+        }
+
+        .calendar table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .calendar th, .calendar td {
+            text-align: center;
+            padding: 1px;
+            width: 10px;
+        }
+
+        .calendar th {
+            background-color: #f2f2f2;
+            border-radius: 6px;
+            max-width: 35px;
+            min-width: 35px;
+        }
+
+        .calendar .day {
+            cursor: pointer;
+            background-color: rgb(99, 99, 99);
+            border-radius: 5px;
+            padding: -1px;
+            width: 15px;
+            
+        }
+
+        .calendar .selected {
+            background-color: #ddd;
+        }

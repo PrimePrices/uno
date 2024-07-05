@@ -19,7 +19,7 @@ init_defaults(app)
 init_uno_app(app, socketio)
 init_admin_app(app)
 init_auth_app(app)
-#init_fact_app(app)
+init_fact_app(app)
 def has_no_empty_params(rule)->bool:
     defaults = rule.defaults if rule.defaults is not None else ()
     arguments = rule.arguments if rule.arguments is not None else ()

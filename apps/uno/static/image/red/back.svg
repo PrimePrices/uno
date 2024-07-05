@@ -1,0 +1,21 @@
+<svg id="svg2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240.5 360.5" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <style>
+      .cls-1 {
+        fill:white;
+      }
+      .cls-3 {
+        fill: #D72600;
+      }
+      .cls-2 {
+        fill: #D72600;
+      }
+    </style>
+  </defs>
+  <title>0</title>
+  <g id="g6555-6">
+    <rect id="rect2987-1-8" class="cls-1" x="0.25" y="0.25" width="240" height="360" rx="40" ry="40"/>
+    <rect id="rect3757-5-07" class="cls-2" x="20.25" y="20.25" width="200" height="320" rx="20" ry="20"/>
+    <path id="path3773-0-4-8-4-2-7" class="cls-3" d="M 180.25 30 a 270 160 90 0 0 -160 240 a 60 40 90 0 0 40 60 a 240 160 90 0 0 160 -240 A 60 40 90 0 0 180.25 30 Z"/>
+  </g>
+</svg>
