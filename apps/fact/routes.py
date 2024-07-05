@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, send_from_directory, abort
 from flask_login import login_required
-from .db import get_db
+from get_db import get_db
 from datetime import date
 fact_bp=Blueprint("fact", __name__, template_folder="templates", url_prefix="/fact", static_folder="static")
 
@@ -10,10 +10,9 @@ fact_bp=Blueprint("fact", __name__, template_folder="templates", url_prefix="/fa
 @fact_bp.route("/")
 def todays_fact():
     print("Todays fact accessed")
-    cursor,conn=get_db()
+    conn=get_db()
     year, month, day=date.today().year, date.today().month, date.today().day
-    cursor.execute(f"SELECT fact, tags, sources FROM facts WHERE date_written='{year}-{month}-{day}'")
-    fact=cursor.fetchone()
+    fact=conn.execute(f"SELECT fact, tags, sources FROM facts WHERE date_written='{year}-{month}-{day}'").fetchone()
     if fact is None:
         print("No fact found for today")
         return render_template("fact.html.jinja", year=year, month=month, day=day, fact_text="No fact found for today", tags=[])
@@ -23,8 +22,8 @@ def todays_fact():
 @login_required
 @fact_bp.route("/archive/<int:year>/<int:month>/<int:day>")
 def archived_fact(year:int, month:int, day:int):
-    cursor, conn=get_db()
-    fact=cursor.execute("SELECT text, tags, sources FROM facts WHERE year={year} AND month={month} AND day={day}").fetchone()
+    conn=get_db()
+    fact=conn.execute("SELECT text, tags, sources FROM facts WHERE year={year} AND month={month} AND day={day}").fetchone()
     conn.close()
     tags=fact[1].split(",")
     return render_template("fact.html.jinja", year=year, month=month, day=day, fact_text=fact[0], tags=tags)
@@ -33,9 +32,10 @@ def archived_fact(year:int, month:int, day:int):
 def search_by_tag():
     tags=request.args
     print(tags)
-    cursor, conn = get_db()
+    conn = get_db()
     sql_build=[f"tags LIKE {tags[i]}" for i in tags.split(',')]
-    facts=cursor.execute("SELECT * FROM facts WHERE {sql_build.join(' AND ')}").fetchall()
+    facts=conn.execute(f"SELECT * FROM facts WHERE {' AND '.join(sql_build)}").fetchall()
+    conn.close()
     return render_template("facts_list.html.jinja", facts=facts)
 @fact_bp.route("/static/<folder>/<anything>")
 def get_static(folder, anything):

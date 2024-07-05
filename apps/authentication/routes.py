@@ -1,8 +1,9 @@
 from flask import render_template, redirect, request, flash, Blueprint
 from flask_login import login_user, current_user, logout_user
-from .models import login_manager, connect_db, User, load_user
+from .models import login_manager, User, load_user
 from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
+from get_db import get_db
 auth_bp = Blueprint('auth', __name__, template_folder="templates")
 
 
@@ -39,32 +40,35 @@ def login():
     return render_template("login.html.jinja")
 
 @auth_bp.route("/sign_up", methods=["GET", "POST"])
-@connect_db
-def sign_up(cursor, conn):
+def sign_up():
+    conn=get_db()
     if request.method=="POST":
         username=request.form.get("username")
         password=request.form.get("password")
         password_again=request.form.get("password_repeated")
         email=request.form.get("email")
         if username is None:
-            return render_template("authentication/sign_up.html.jinja")
+            conn.close()
+            return render_template("sign_up.html.jinja")
         if "default_" in username:
+            conn.close()
             return render_template("authentication/sign_up.html.jinja", invalid_format=True)
-        cursor.execute(f"SELECT * FROM user WHERE username='{username}'")
-        if cursor.fetchone() or "default_" in username:
+        if conn.execute(f"SELECT * FROM user WHERE username='{username}'").fetchone() or "default_" in username:
+            conn.close()
             return render_template("authentication/signup.html.jinja", username_invalid=True)
         if password!=password_again or password is None:
             return render_template("authentication/signup.html.jinja", password_dont_match=True)
-        cursor.execute(f"SELECT * FROM user WHERE email='{email}'")
-        if cursor.fetchone():
+        if conn.execute(f"SELECT * FROM user WHERE email='{email}'").fetchone():
+            conn.close()
             return render_template("authentication/signup.html.jinja", email_taken=True)
         h_pass=generate_password_hash(password)
         print(f"{password=} {h_pass=}")
-        cursor.execute(f"INSERT INTO user (username, hashed_password, email) VALUES ('{username}', '{h_pass}', '{email}') ")
+        conn.execute(f"INSERT INTO user (username, hashed_password, email) VALUES ('{username}', '{h_pass}', '{email}') ")
         conn.commit()
+        conn.close()
         return "Accepted"
     else:
-        return render_template("authentication/signup.html.jinja")
+        return render_template("signup.html.jinja")
 
 @login_manager.unauthorized_handler
 def unauthorized_callback():

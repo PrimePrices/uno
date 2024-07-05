@@ -1,29 +1,21 @@
-from sqlite3 import connect
+from get_db import get_db
 
-def get_db() -> tuple:
-    conn=connect("apps/uno/database.db")
-    cursor=conn.cursor()
-    return cursor, conn
-def init_db() -> None:
-    cursor, conn = get_db()
-    with open("apps/uno/create.sql", "r") as create:
-        cursor.executescript(create.read())
-    conn.close()
+
 
 class DBClass:
     table="default"
     def __init__(self):self.id=None # This stops the self.id from causing errors when the code is parsed
     def _update_db(self, attribute:str, value:str|list):
-        cursor, conn= get_db()
+        conn= get_db()
         print(f"updating {attribute} to {value}")
         if type(value)==list:
             value=",".join(value)
-        cursor.execute(f"UPDATE {self.table} SET {attribute}='{value}' WHERE id={self.id}")
+        conn.execute(f"UPDATE {self.table} SET {attribute}='{value}' WHERE id={self.id}")
         conn.commit()
         conn.close()
     def _get_db_attribute(self, attribute:str):
-        cursor, conn= get_db()
-        value=cursor.execute(f"SELECT {attribute} FROM {self.table} WHERE id={self.id}").fetchone()[0]
+        conn= get_db()
+        value=conn.execute(f"SELECT {attribute} FROM {self.table} WHERE id={self.id}").fetchone()[0]
         conn.close()
         return value
     @staticmethod
@@ -70,8 +62,8 @@ class CSVList(list):
     def __getitem__(self, index):#
         return self.get_list()[index]
     def get_list(self) -> list:
-        cursor, conn=get_db() 
-        data:str=cursor.execute(f"SELECT {self.column} FROM {self.table} WHERE id={self.entry_uid}").fetchone()[0]
+        conn=get_db() 
+        data:str=conn.execute(f"SELECT {self.column} FROM {self.table} WHERE id={self.entry_uid}").fetchone()[0]
         conn.close()
         if not data:
             #print(f"{data=}")
@@ -87,8 +79,8 @@ class CSVList(list):
         if self.data_type!=None:
             l=[str(i) for i in l]
         string=",".join(l)
-        cursor, conn=get_db()
-        cursor.execute(f"UPDATE {self.table} SET {self.column}='{string}' WHERE id={self.entry_uid}")
+        conn=get_db()
+        conn.execute(f"UPDATE {self.table} SET {self.column}='{string}' WHERE id={self.entry_uid}")
         conn.commit()
         conn.close()
     def append(self, value):

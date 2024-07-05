@@ -29,12 +29,12 @@ class Player(DBClass):
 
     def __init__(self, username:str, game_id=None, row_id=None):
         self.username=username
-        cursor,conn=get_db()
+        conn=get_db()
         if game_id != None:
-            data = cursor.execute(f"SELECT id FROM {self.table} WHERE username='{username}' AND game_id={game_id}").fetchone()
+            data = conn.execute(f"SELECT id FROM {self.table} WHERE username='{username}' AND game_id={game_id}").fetchone()
             self.game_id=game_id  
         else: 
-            data = cursor.execute(f"SELECT id, game_id FROM {self.table} WHERE username='{username}'").fetchone()
+            data = conn.execute(f"SELECT id, game_id FROM {self.table} WHERE username='{username}'").fetchone()
             self.game_id=data[1]
         conn.close()
         if not data:
@@ -64,7 +64,6 @@ class Game(DBClass):
     discard:property = DBClass._database_list("discard", data_type=str)
     draw:property = DBClass._database_list("draw", data_type=str)
     rules:property= DBClass._database_list("rules", data_type=str)
-    players:property = DBClass._database_list("players", data_type=Player)
     last_activity:property = DBClass._database_property("last_activity")
     def __repr__(self) -> str:
         return f"Game {self.id=} {self.number_of_players=} {self.players[:]=} {self.next_player=} {self.direction=} {self.discard=} {self.draw=}" 
@@ -72,9 +71,8 @@ class Game(DBClass):
         if create:
             this_deck=["r0", "y0", "b0", "g0"]+[i+j for i in "rgby" for j in "123456789rsd"]*2+["u1", "u4"]*4
             shuffle(this_deck)
-            cursor, conn = get_db()
-            cursor.execute(f'INSERT INTO games(next_player, players, number_of_players) VALUES ("{username}", "", 0)')
-            self.id=cursor.lastrowid
+            conn = get_db()
+            self.id=conn.execute(f'INSERT INTO games(next_player, number_of_players) VALUES ("{username}", 0)').lastrowid
             conn.commit()
             conn.close()
             self.draw=this_deck
@@ -84,10 +82,10 @@ class Game(DBClass):
                 self.discard.append(this_deck.pop())
             self.add_player(username) # type: ignore
         else:
-            cursor, conn = get_db()
+            conn = get_db()
             id=int(id) # type:ignore 
             print(id)
-            data=cursor.execute(f'SELECT id FROM {self.table} WHERE id="{id}"').fetchone()
+            data=conn.execute(f'SELECT id FROM {self.table} WHERE id="{id}"').fetchone()
             conn.close()
             if data:
                 self.id=int(id)
@@ -164,9 +162,9 @@ class Game(DBClass):
         self.players.append(username)
         self.number_of_players=self.number_of_players+1
         hand=self.draw_card(n=7)
-        cursor, conn = get_db()
-        cursor.execute(f'INSERT INTO hands(position, game_id, username, number_of_cards) VALUES ({self.number_of_players}, {self.id}, "{username}", 7)')
-        id=cursor.lastrowid
+        conn = get_db()
+        id = conn.execute(f'''INSERT INTO hands(position, game_id, username, number_of_cards) VALUES 
+                          ({self.number_of_players}, {self.id}, "{username}", 7)''').lastrowid
         #print(f"{id=}")
         conn.commit()
         conn.close()
@@ -241,9 +239,8 @@ class Game(DBClass):
 def make_game(username:str, rules:str|None) -> Game:
     return Game(username=username, create=True, rules=rules)
 def get_player_by_property(attribute:Literal["username", "id"], value:str) -> Player:
-    cursor, conn = get_db()
-    cursor.execute(f"SELECT username, game_id, id FROM hands WHERE {attribute}='{value}'")
-    player = cursor.fetchone()
+    conn = get_db()
+    player = conn.execute(f"SELECT username, game_id, id FROM hands WHERE {attribute}='{value}'").fetchone()
     conn.close()
     if not player:
         abort(404)

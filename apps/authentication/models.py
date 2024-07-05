@@ -4,29 +4,10 @@ import bcrypt
 from flask_login import LoginManager, UserMixin, login_required, current_user
 from flask import redirect, request
 from werkzeug.security import generate_password_hash, check_password_hash
+from get_db import get_db
 #from run import login_manager
 login_manager=LoginManager()
-def connect_db(function):
-    def wrapper(* args, ** kwargs):
-        conn=sqlite3.connect("apps/authentication/database.db")
-        cursor=conn.cursor()
-        try:
-            result=function(cursor, conn, * args, ** kwargs)
-        except BaseException as x:
-            print(function.__name__ + " " + str(x))
-            raise
-        finally: conn.close()
-        return result
-    return wrapper
-def access_db():
-    conn=sqlite3.connect("apps/authentication/database.db")
-    cursor=conn.cursor()
-    return cursor, conn
-def init_db():
-    cursor, conn =  access_db()
-    with open("apps/authentication/create.sql", "r") as create:
-        cursor.executescript(create.read())
-    conn.close()
+
 
 
 class User(UserMixin):
@@ -52,12 +33,11 @@ class User(UserMixin):
 
 @login_manager.user_loader
 def load_user(user_id):
-    cursor, conn=access_db()
+    conn=get_db()
     if user_id.isdigit():
-        cursor.execute("SELECT * FROM user WHERE id = ?", (int(user_id),))
+        user = conn.execute("SELECT * FROM user WHERE user_id = ?", (int(user_id),)).fetchone()
     else: 
-        cursor.execute("SELECT * FROM user WHERE username = ?", (user_id,))
-    user = cursor.fetchone()
+        user = conn.execute("SELECT * FROM user WHERE username = ?", (user_id,)).fetchone()
     conn.close()
     if user is None:
         return None

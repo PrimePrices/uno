@@ -1,15 +1,17 @@
 from flask import Flask, render_template, request, send_from_directory, redirect, abort, make_response, Response, url_for
 from flask_socketio import SocketIO
 from flask_login import login_required
+import logging
+from datetime import timedelta
+
 from apps.admin.__init__ import init_admin_app
 from apps.uno.__init__ import init_uno_app
 from apps.authentication.__init__ import init_auth_app
 from apps.fact.__init__ import init_fact_app
-from apps.fact import Fact
 from resources import init_defaults
-from datetime import timedelta
+from get_db import get_db
 from apps.uno.socketing import *
-import logging
+
 app=Flask(__name__)
 app.secret_key = "Proof by induction should always be taught by ducks!"
 socketio=SocketIO(app)
@@ -26,6 +28,12 @@ def has_no_empty_params(rule)->bool:
     return len(defaults) >= len(arguments)
 
 logger=logging.getLogger("werkzeug")
+def init_db():
+    conn=get_db()
+    with open("create.sql", "r") as create:
+        conn.executescript(create.read())
+    conn.close()
+init_db()
 
 @app.context_processor
 def inject_variables(): 
