@@ -8,8 +8,9 @@ uno_bp = Blueprint("uno", __name__, static_folder="apps/uno/static", url_prefix=
 
 
 special_cards={"u0":"blank","u1":"wild","u2":"N/A","u3":"N/A","u4":"draw4","u5":"N/A","u6":"N/A","u7":"N/A","u8":"N/A","u9":"N/A"}
-@login_required
+
 @uno_bp.route("/newgame/<rules>", methods=["GET", "POST"])
+@login_required
 def newGame(rules):
     user=current_user.username
     game=Game(create=True, username=user, rules=rules)

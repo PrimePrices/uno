@@ -16,48 +16,51 @@ def profile():
     return "profile"
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
-    if current_user.is_authenticated:
+    if current_user.is_authenticated and request.method=="GET":
         return redirect("/profile")
     if request.method=="POST":
         name=request.form.get("username")
         password=request.form.get("password")
         remember_me:bool="True"==request.form.get("remember_me")
         next=request.args.get("next")
+        print(f"{next=}")
         User=load_user(name)
         print(f"{User} is trying to log in")
         if User is None:
-            return render_template("login.html.jinja", username_invalid=True)
+            return render_template("login.html.jinja", username_invalid=True, url=request.url)
         if User.check_password(password):
             User.authenticated=True
             login_user(User, remember=True)
             flash("Logged in successfully", "success")
             print(f"{current_user=}, {current_user.is_authenticated()=}")
             print("password accepted")
-            return redirect(next or "/index")
+            if next:
+                print(f"{next=}")
+                return redirect(next)
+            else:
+                return redirect("/index")
         else:
             print(f"{password=}")
-            return render_template("login.html.jinja", password_invalid=True)
-    return render_template("login.html.jinja")
+            return render_template("login.html.jinja", password_invalid=True, url=request.url)
+    return render_template("login.html.jinja", url=request.url)
 
 @auth_bp.route("/sign_up", methods=["GET", "POST"])
 def sign_up():
-    conn=get_db()
     if request.method=="POST":
         username=request.form.get("username")
         password=request.form.get("password")
         password_again=request.form.get("password_repeated")
         email=request.form.get("email")
         if username is None:
-            conn.close()
             return render_template("sign_up.html.jinja")
         if "default_" in username:
-            conn.close()
-            return render_template("authentication/sign_up.html.jinja", invalid_format=True)
-        if conn.execute(f"SELECT * FROM user WHERE username='{username}'").fetchone() or "default_" in username:
-            conn.close()
-            return render_template("authentication/signup.html.jinja", username_invalid=True)
+            return render_template("authentication/sign_up.html.jinja", username_invalid=True)
         if password!=password_again or password is None:
             return render_template("authentication/signup.html.jinja", password_dont_match=True)
+        conn=get_db()
+        if conn.execute(f"SELECT * FROM user WHERE username='{username}'").fetchone():
+            conn.close()
+            return render_template("authentication/signup.html.jinja", username_invalid=True)
         if conn.execute(f"SELECT * FROM user WHERE email='{email}'").fetchone():
             conn.close()
             return render_template("authentication/signup.html.jinja", email_taken=True)
@@ -73,4 +76,4 @@ def sign_up():
 @login_manager.unauthorized_handler
 def unauthorized_callback():
     print(f"unathorised access to {request.path} by user {current_user}")
-    return redirect("/login?next="+request.path)
+    return redirect("/auth/login?next="+request.path)

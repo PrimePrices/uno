@@ -1,15 +1,15 @@
 CREATE TABLE IF NOT EXISTS hands (
-    hand_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     game_id INTEGER,
     position INTEGER,
     cards TEXT,
     username TEXT,
     number_of_cards INT DEFAULT 7,
     FOREIGN KEY (username) REFERENCES user(username),
-    FOREIGN KEY (game_id)  REFERENCES games(game_id)
+    FOREIGN KEY (game_id)  REFERENCES games(id)
 );
 CREATE TABLE IF NOT EXISTS games(
-    game_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     rules TEXT DEFAULT "",
     number_of_players INTEGER DEFAULT 1,
     next_player INTEGER,
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS games(
     FOREIGN KEY (next_player) REFERENCES user(id)
 );
 CREATE TABLE IF NOT EXISTS user (
-    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT UNIQUE NOT NULL,
     hashed_password TEXT NOT NULL,
     email TEXT,
@@ -28,12 +28,12 @@ CREATE TABLE IF NOT EXISTS user (
 );
 
 CREATE TABLE IF NOT EXISTS super_user(
-    admin_id INTEGER,
-    FOREIGN KEY (admin_id) REFERENCES user(user_id)
+    id INTEGER,
+    FOREIGN KEY (id) REFERENCES user(id)
 );
 
 CREATE TABLE IF NOT EXISTS facts(
-    fact_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     year_written INTEGER,
     month_written INTEGER,
     day_written INTEGER,
@@ -48,5 +48,5 @@ CREATE TABLE IF NOT EXISTS tags_facts(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     tag TEXT,
     fact_id INTEGER,
-    FOREIGN KEY (fact_id) REFERENCES facts(fact_id)
+    FOREIGN KEY (fact_id) REFERENCES facts(id)
 )

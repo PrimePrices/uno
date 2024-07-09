@@ -66,7 +66,7 @@ class Game(DBClass):
     rules:property= DBClass._database_list("rules", data_type=str)
     last_activity:property = DBClass._database_property("last_activity")
     def __repr__(self) -> str:
-        return f"Game {self.id=} {self.number_of_players=} {self.players[:]=} {self.next_player=} {self.direction=} {self.discard=} {self.draw=}" 
+        return f"Game {self.id=} {self.number_of_players=} {self.next_player=} {self.direction=} {self.discard=} {self.draw=}" 
     def __init__(self, id:int|None=None, create=False, username: str|None=None, rules=None) -> None:
         if create:
             this_deck=["r0", "y0", "b0", "g0"]+[i+j for i in "rgby" for j in "123456789rsd"]*2+["u1", "u4"]*4
@@ -84,7 +84,6 @@ class Game(DBClass):
         else:
             conn = get_db()
             id=int(id) # type:ignore 
-            print(id)
             data=conn.execute(f'SELECT id FROM {self.table} WHERE id="{id}"').fetchone()
             conn.close()
             if data:
@@ -92,29 +91,42 @@ class Game(DBClass):
             else:
                 print(f"{id=}")
                 raise GameException("Game doesn't exist")
-    def increment_players(self) -> None:
-
-        print(f"""incrementing players, 
-            old player: {self.next_player},
-            {self.players[0].username=}, 
-            {[player.username for player in self.players.get_list()]},
-            {self.direction=}""")
+    def increment_players(self) -> None: 
+        """
+        Shift the order of the players
+        Not to be called alongside reverse_players()
+        """
+        players=self.get_players()
+        print(f"{players=}")
+        if len(players) == 1:
+            return None
         if self.direction == 0:
-            players=self.players[:]
             players.append(players.pop(0))
-            print(f"{players=}")
-            self.players = players
         else:
-            self.players = [self.players[-1]]+self.players[:-1]
-        self.next_player=self.players[0]
-        print(f"{self.next_player=}")
-        transmit(self.id, "players_turn", self.next_player)
+            players=[players[-1]]+players[:-1]
+        for n, v in enumerate(players):
+            v.position=n
+        self.next_player=players[0]
     def reverse_players(self):
+        """
+        Reverse the order of the players
+        To be called instead of increment_players
+        """
+        players=self.get_players()
         if self.number_of_players == 2:
             return None
-        self.players.reverse()
-        self.next_player=self.players[0]
-    def get_game_info(self) -> dict[str, (dict|int|list|str)]:
+        players.reverse()
+        for n, v in enumerate(players):
+            v.position=n
+        self.next_player=players[0]
+    def get_players(self) -> list[Player]:
+        conn=get_db()
+        data=conn.execute(f"SELECT id, username FROM hands WHERE game_id={self.id}").fetchall()
+        conn.close()
+        players=[Player(row[1], game_id=self.id, row_id=row[0]) for row in data]
+        players.sort(key=lambda player: player.position) 
+        return players
+    def get_game_info(self) -> dict[str, Any|dict|int|list|str]:
         """Returns a dictionary of information about the game
         
         Arguments:
@@ -134,7 +146,7 @@ class Game(DBClass):
             draw_length:int
         """
         rules: list[str]=self.rules
-        players: list[Player]=self.players
+        players: list[Player] = self.get_players()
         return {"id": self.id, 
                 "rules": rules, 
                 "number_of_players":self.number_of_players, 
@@ -158,11 +170,10 @@ class Game(DBClass):
         return Player(username, game_id=self.id).cards
     def add_player(self, username:str) -> Player:
         conn = get_db()
-        data = conn.execute(f"SELECT hand_id FROM hands WHERE username='{username}' AND game_id={self.id}").fetchone()
-        if username in self.players:
+        data = conn.execute(f"SELECT id FROM hands WHERE username='{username}' AND game_id={self.id}").fetchone()
+        if data:
             print("player already in game")
             abort(409)
-        self.players.append(username)
         self.number_of_players=self.number_of_players+1
         hand=self.draw_card(n=7)
         
@@ -193,20 +204,22 @@ class Game(DBClass):
                 self.discard.append(colour+card_str) #type:ignore
         else:
             self.discard.append(card_str)
-        next_player=Player(self.next_player, game_id=self.id)
+
         if card_str[-1] == "d":
+            self.increment_players()
+            next_player=Player(self.next_player, game_id=self.id)
             for i in range(2):
                 next_player.drew_a_card(self.draw_card()[0])
-
-            self.increment_players()
         if card_str == "u4":
+            self.increment_players()
+            next_player=Player(self.next_player, game_id=self.id)
             for i in range(4):
                 next_player.cards.append(self.draw_card()[0])
-            self.increment_players
         if card_str[-1] == "r":
             self.reverse_players()
             return cards_left
-        self.increment_players()
+        else:
+            self.increment_players()
         return cards_left
     def check_if_card_is_valid(self, card:str, player) -> bool:
         if card not in player.cards:
@@ -221,7 +234,7 @@ class Game(DBClass):
             if bool(value) and self.next_player==player.username:
                 return True
         return False
-    def compare_card(self,card, discard)->int: #marker extend for specials
+    def compare_card(self, card, discard)->int: #marker extend for specials
         if card==discard[0]+discard[1]:
             return 2
         if len(discard)>=3:

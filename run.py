@@ -37,7 +37,8 @@ init_db()
 
 @app.context_processor
 def inject_variables(): 
-    return {"logged_in":current_user.is_authenticated} 
+    return {"logged_in":current_user.is_authenticated,
+            "url": request.url} 
 class ExcludeRoutesFilter(logging.Filter):
     def filter(self, record):
         excluded_strings = [

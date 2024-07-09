@@ -169,8 +169,9 @@ socket.on('update_game_state', function(data) {
         case "player_drew_a_card":
             console.log(data)
             if (data.player!==get_my_name()){ //need to now get my username
-                player = get_player(data.player)    
-                player.children[1].append(load_card({colour:"none", value:"back"}))
+                player = get_player(data.player)
+                var card=load_card({colour:"none", value:"back"})
+                player.children[1].append(card)
                 console.log(get_player(data.player))
             } else {
                 console.log("You drew a card")
@@ -182,7 +183,9 @@ socket.on('update_game_state', function(data) {
             console.log(data)
             player = document.getElementById("myHand").children[0]
             console.log(player, player.children[1])
-            player.children[1].appendChild(load_card(data["card"]))
+            var card=load_card(data["card"])
+            card.classList.add("clickable")
+            player.children[1].appendChild(card)
             //username, card, draw_length
             break;
         case "you_won":

@@ -1,6 +1,6 @@
 {% extends "base.html.jinja" %}
 {% block content %}
-    <form method="post" action="/auth/login"> 
+    <form method="post" action={{url}}> 
         <label for="username">Username</label> 
         <input type="text" name="username" id="username"/>  
         <br/>
@@ -19,6 +19,6 @@
         <label for="remeber_me">Remember me?</label><br>
         <input type="submit" name="submit" id="submit" value="Login"/>  
     </form>
-    <a href="/sign-up">Or Create An Account Instead</a> 
+    <a href="/auth/sign_up">Or Create An Account Instead</a> 
 {% endblock %}
 </html>

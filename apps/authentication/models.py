@@ -1,14 +1,24 @@
 import sqlite3
 from typing import Any
 import bcrypt
-from flask_login import LoginManager, UserMixin, login_required, current_user
+from flask_login import LoginManager, UserMixin, login_required, current_user, AnonymousUserMixin
 from flask import redirect, request
 from werkzeug.security import generate_password_hash, check_password_hash
 from get_db import get_db
 #from run import login_manager
 login_manager=LoginManager()
 
-
+class Anonymous(AnonymousUserMixin):
+    def __init__(self):
+        self.username="default_anonymous"
+    def is_authenticated(self):
+        return False
+    def is_active(self):
+        return False
+    def is_anonymous(self):
+        return True
+    def get_id(self):
+        return "default_anonymous"
 
 class User(UserMixin):
     def __init__(self, id, username, hashed_password, email):
@@ -33,10 +43,9 @@ class User(UserMixin):
 
 @login_manager.user_loader
 def load_user(user_id):
-    print(f"loading user {user_id}")
     conn=get_db()
     if user_id.isdigit():
-        user = conn.execute("SELECT * FROM user WHERE user_id = ?", (int(user_id),)).fetchone()
+        user = conn.execute("SELECT * FROM user WHERE id = ?", (int(user_id),)).fetchone()
     else: 
         user = conn.execute("SELECT * FROM user WHERE username = ?", (user_id,)).fetchone()
     conn.close()
