@@ -19,8 +19,9 @@ def todays_fact():
     tags=fact[1].split(",")
     conn.close()
     return render_template("fact.html.jinja", year=year, month=month, day=day, fact_text=fact[0], sources=fact[2], tags=tags)
-@login_required
+
 @fact_bp.route("/archive/<int:year>/<int:month>/<int:day>")
+@login_required
 def archived_fact(year:int, month:int, day:int):
     conn=get_db()
     fact=conn.execute("SELECT text, tags, sources FROM facts WHERE year={year} AND month={month} AND day={day}").fetchone()
@@ -30,11 +31,11 @@ def archived_fact(year:int, month:int, day:int):
 @fact_bp.route("/search/")
 @login_required
 def search_by_tag():
+    raise NotImplementedError()
     tags=request.args
     print(tags)
     conn = get_db()
-    sql_build=[f"tags LIKE {tags[i]}" for i in tags.split(',')]
-    facts=conn.execute(f"SELECT * FROM facts WHERE {' AND '.join(sql_build)}").fetchall()
+    facts=conn.execute(f"SELECT * FROM facts WHERE ").fetchall()
     conn.close()
     return render_template("facts_list.html.jinja", facts=facts)
 @fact_bp.route("/static/<folder>/<anything>")
