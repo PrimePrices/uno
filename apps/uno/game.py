@@ -2,7 +2,7 @@ from random import shuffle
 from flask import abort
 from typing import Any, Literal
 from flask import abort
-from .db import get_db, DBClass, CSVList
+from .db import DBClass, CSVList, get_db
 from .transmit import transmit
 
 def card_to_json(string:str) -> dict:
@@ -26,7 +26,7 @@ class Player(DBClass):
     position = DBClass._database_property("position")
     cards= DBClass._database_list("cards", data_type=str)
     number_of_cards = DBClass._database_property("number_of_cards")
-
+    request_sid = DBClass._database_property("request_sid")
     def __init__(self, username:str, game_id=None, row_id=None):
         self.username=username
         conn=get_db()
@@ -209,7 +209,10 @@ class Game(DBClass):
             self.increment_players()
             next_player=Player(self.next_player, game_id=self.id)
             for i in range(2):
-                next_player.drew_a_card(self.draw_card()[0])
+                next_player.drew_a_card(drawn_cards:=self.draw_card()[0])
+                transmit(self.id, "player_drew_a_card", next_player.username, {}, # type:ignore
+                          exclue_request_sid=True, request_sid=next_player.request_sid,
+                          private_message={"action": "player_drew_a_card", "card": drawn_cards[0]})
         if card_str == "u4":
             self.increment_players()
             next_player=Player(self.next_player, game_id=self.id)
@@ -254,10 +257,10 @@ class Game(DBClass):
 
 def make_game(username:str, rules:str|None) -> Game:
     return Game(username=username, create=True, rules=rules)
+
 def get_player_by_property(attribute:Literal["username", "id"], value:str) -> Player:
-    conn = get_db()
+    conn=get_db()
     player = conn.execute(f"SELECT username, game_id, id FROM hands WHERE {attribute}='{value}'").fetchone()
-    conn.close()
     if not player:
         abort(404)
     player_obj=Player(player[0], game_id=player[1], row_id=player[2])

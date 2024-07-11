@@ -1,4 +1,4 @@
-from get_db import get_db
+from get_db import get_db, requires_db
 
 
 

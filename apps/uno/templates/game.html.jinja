@@ -30,11 +30,14 @@
 
 {% macro popup(colours) %}
     <div id="popup">
-        <h3>Pick a colour</h3>
-        <div id="colours">
-            {% for colour in colours %}
-                <img src="/uno/static/image/{{colour}}/back.svg" class="card colour clickable" data-colour={{colour}}>
-            {% endfor %}
+        <div id="popup-background"></div>
+        <div id="popup-content">
+            <h3>Pick a colour</h3>
+            <div id="colours">
+                {% for colour in colours %}
+                    <img src="/uno/static/image/{{colour}}/back.svg" class="card colour clickable" data-colour={{colour}}>
+                {% endfor %}
+            </div>
         </div>
     </div>
 {% endmacro %}

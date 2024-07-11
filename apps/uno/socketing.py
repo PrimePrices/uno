@@ -5,7 +5,7 @@ from flask import abort, request
 from .transmit import transmit
 from .game import *
 def flash(message):
-    emit("flash", {"message": message}, namespace="/", to=request.sid)
+    emit("flash", {"message": message}, namespace="/", to=request.sid)#type: ignore
 
 def authenticate_only(f): # wrapper
     def wrapped(*args, **kwargs):
@@ -40,7 +40,7 @@ def register_routes(socketio):
                      current_user.username, 
                      {"draw_length": len(game.draw)}, 
                      exclue_request_sid=True, 
-                     request_sid=request.sid, 
+                     request_sid=request.sid, #type: ignore
                      private_message={"action": "you_drew_a_card", "card": card_to_json(card[0]), "draw_length": len(game.draw)})
         elif data["action"] == "uno_challenge":
             print(f'{data["from"]} uno challenges {data["to"]} at {data["timestamp"]}')
@@ -49,7 +49,13 @@ def register_routes(socketio):
     print("registering socketio routes")
     @socketio.on("connect")
     def connect():
-        print("user connected")
+        print("user connected", current_user.username, request.sid)# type: ignore
+        if not current_user.is_authenticated:
+            return disconnect()
+        conn=get_db()
+        conn.execute(f"UPDATE hands SET request_sid='{request.sid}' WHERE username='{current_user.username}'")# type: ignore
+        conn.commit()
+        conn.close()
         return True
     @socketio.on("join")
     def handle_join_room(data):

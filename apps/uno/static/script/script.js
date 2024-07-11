@@ -27,6 +27,9 @@ function clicked_card(e){
         for (const i in hand_list){
             if (hand_list[i]===cardElem){var position=i}
         }
+        if (colour == "none"){
+
+        }
         console.log("position=", position)
         socket.emit("update", {"game_name": get_game_id(), 
                                 "info":{"action": "player_played_a_card", "card":{"value":value, "colour": colour}, "card_n": position}})

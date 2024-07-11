@@ -1,6 +1,6 @@
 from flask import abort
 from flask_socketio import emit
-def transmit(game, action, user, other_details={}, exclue_request_sid=False, request_sid= None, private_message=None):
+def transmit(game:int, action:str, user:str, other_details: dict={}, exclue_request_sid=False, request_sid= None, private_message=None):
     if action in ["player_joined","player_said_uno", "player_left", "player_won", "player_drew_a_card", "player_reversed_direction", "players_turn", "you_won"]:
         data = {"player": user}
     elif action=="player_drew_a_card":
@@ -16,7 +16,8 @@ def transmit(game, action, user, other_details={}, exclue_request_sid=False, req
     elif action=="message_in_chat":
         data={"player":user, "message": other_details["message"]}
     else:
-        abort(414)
+        print(action)
+        abort(500)
     data["action"]=action
     print(f"emmiting {data=} to {game=} on /uno/{game}/updates")
     if exclue_request_sid:
