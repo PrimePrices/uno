@@ -4,7 +4,7 @@
     justify-content: center;
     align-items: center;
     z-index: 100;
-    padding-top: 100px;
+    padding-top: 0px;
     left: 0;
     top: 0;
     width: 100%;
@@ -21,15 +21,17 @@
     opacity: 0.3;
 }
 #popup-content{
-    position: fixed;
-    z-index: 101;
+    position: relative;
+    z-index: 105;
     background-color: white;
     margin-inline: auto;
+    top:50%;
     padding: 20px;
     max-width: fit-content;
     border: 1px solid #888;
     width: auto;
-    opacity: 1/0.3;
+    -ms-transform: translate(0, -50%);
+    transform: translate(0, -50%);
 }
 
 #gameState{

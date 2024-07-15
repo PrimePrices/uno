@@ -97,7 +97,6 @@ class Game(DBClass):
         Not to be called alongside reverse_players()
         """
         players=self.get_players()
-        print(f"{players=}")
         if len(players) == 1:
             return None
         if self.direction == 0:
@@ -161,7 +160,6 @@ class Game(DBClass):
                 "draw_length": len(self.draw)//2}
     def get_game_info_personalised(self, username:str) -> dict[str, (str|dict|list)]:
         data:dict = self.get_game_info()
-        #print(data)
         hand:str = self.get_player_hand(username)
         data["players"][username]["you"]=True
         data["players"][username]["hand"]=[card_to_json(card) for card in hand]
@@ -172,14 +170,13 @@ class Game(DBClass):
         conn = get_db()
         data = conn.execute(f"SELECT id FROM hands WHERE username='{username}' AND game_id={self.id}").fetchone()
         if data:
-            print("player already in game")
+            print("ERROR player already in game (Game.add_player)")
             abort(409)
         self.number_of_players=self.number_of_players+1
         hand=self.draw_card(n=7)
         
         id = conn.execute(f'''INSERT INTO hands(position, game_id, username, number_of_cards) VALUES 
                           ({self.number_of_players}, {self.id}, "{username}", 7)''').lastrowid
-        #print(f"{id=}")
         conn.commit()
         conn.close()
         player=Player(username, game_id=self.id, row_id=id)
@@ -204,7 +201,10 @@ class Game(DBClass):
                 self.discard.append(colour+card_str) #type:ignore
         else:
             self.discard.append(card_str)
-
+        transmit(int(self.id), #type:ignore
+                 "player_played_a_card", 
+                 username, 
+                 {"card": card_to_json(card_str), "card_n": card_n, "cards_left": cards_left})
         if card_str[-1] == "d":
             self.increment_players()
             next_player=Player(self.next_player, game_id=self.id)
@@ -212,7 +212,7 @@ class Game(DBClass):
                 next_player.drew_a_card(drawn_cards:=self.draw_card()[0])
                 transmit(self.id, "player_drew_a_card", next_player.username, {}, # type:ignore
                           exclue_request_sid=True, request_sid=next_player.request_sid,
-                          private_message={"action": "player_drew_a_card", "card": drawn_cards[0]})
+                          private_message={"action": "you_drew_a_card", "card": card_to_json(drawn_cards)})
         if card_str == "u4":
             self.increment_players()
             next_player=Player(self.next_player, game_id=self.id)
@@ -228,7 +228,6 @@ class Game(DBClass):
         if card not in player.cards:
             abort(422, description="card not in hand")
         value=self.compare_card(card, self.discard[-1])
-        print(f"comparison {value=} between {card=} and {self.discard[-1]=}; {self.next_player=}, {player.__repr__()=}")
         if "anyone_can_play_with_identical_cards" in self.rules and value==2:
             return True
         if bool(value) and self.next_player==player:
@@ -236,6 +235,8 @@ class Game(DBClass):
         if type(player)==Player:
             if bool(value) and self.next_player==player.username:
                 return True
+            
+        print(f"comparison {value=} between {card=} and {self.discard[-1]=}; {self.next_player=}, {player.__repr__()=} (Game.player_played_a_card)")
         return False
     def compare_card(self, card, discard)->int: #marker extend for specials
         if card==discard[0]+discard[1]:

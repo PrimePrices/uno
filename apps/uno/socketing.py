@@ -22,15 +22,9 @@ def register_routes(socketio):
         data=data["info"]
         if data["action"] == "player_played_a_card":
             game=Game(game_name)
-            cards_left:int=game.player_played_card(current_user.username, data["card"], data["card_n"])
-            transmit(str(game_name), 
-                     data["action"], 
-                     current_user.username, 
-                     {"card": data["card"], "card_n": data["card_n"], "cards_left": cards_left})
+            game.player_played_card(current_user.username, data["card"], data["card_n"])
         elif data["action"] == "player_drew_a_card":
-            print(f"player drew a card {game_name=} {data=}")
             game=Game(game_name)
-            print(f"{Game=}")
             card=game.draw_card()
             game.increment_players()
             player=Player(current_user.username, game_id=game.id)

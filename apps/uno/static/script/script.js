@@ -11,6 +11,12 @@ function load_card({colour, value}) {
 function get_game_id(){
     return new URL(window.location).pathname.split("/")[3]
 }
+
+function get_colour_choice(card){
+    console.log(card)
+    const popup=document.getElementById("popup")
+    popup.style.display="block"
+}
 function clicked_card(e){
     console.log(e)
     let cardElem= e.target
@@ -27,13 +33,13 @@ function clicked_card(e){
         for (const i in hand_list){
             if (hand_list[i]===cardElem){var position=i}
         }
-        if (colour == "none"){
-
-        }
         console.log("position=", position)
+        if (cardElem.classList.contains("blank")){
+            get_colour_choice(cardElem)
+        } else {        
         socket.emit("update", {"game_name": get_game_id(), 
                                 "info":{"action": "player_played_a_card", "card":{"value":value, "colour": colour}, "card_n": position}})
-
+        }
     } else if (cardElem.parentNode.id="draw"){
         socket.emit("update", {"game_name": get_game_id(), "info":{"action": "player_drew_a_card"}})
     } else {console.log("somethings gone wrong")}
@@ -188,6 +194,9 @@ socket.on('update_game_state', function(data) {
             console.log(player, player.children[1])
             var card=load_card(data["card"])
             card.classList.add("clickable")
+            if (data["card"].colour=="none"){
+                card.classList.add("blank")
+            }
             player.children[1].appendChild(card)
             //username, card, draw_length
             break;

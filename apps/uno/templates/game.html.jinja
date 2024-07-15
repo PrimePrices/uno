@@ -25,7 +25,7 @@
 {%- endmacro %}
 
 {% macro cardCard(colour, value, clickable=false) %}
-    <img class="card {% if clickable %} clickable{% endif %}" src="/uno/static/image/{{colour}}/{{value}}.svg" data-value={{value}} data-colour={{colour}} class="card">
+    <img class="card {% if clickable %} clickable {% if colour=="none" %}blank{% endif %}{% endif %}" src="/uno/static/image/{{colour}}/{{value}}.svg" data-value={{value}} data-colour={{colour}} class="card">
 {% endmacro %}
 
 {% macro popup(colours) %}

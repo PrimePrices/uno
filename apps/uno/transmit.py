@@ -21,8 +21,8 @@ def transmit(game:int, action:str, user:str, other_details: dict={}, exclue_requ
     data["action"]=action
     print(f"emmiting {data=} to {game=} on /uno/{game}/updates")
     if exclue_request_sid:
-        emit('update_game_state', data, namespace="/", to=game, skip_sid=request_sid)
+        emit('update_game_state', data, namespace="/", to=str(game), skip_sid=request_sid)
         print(f"emmiting privately {private_message=} to {request_sid=} on /uno/{game}/updates")
         emit("update_game_state", private_message, namespace="/", to=request_sid)
     else:
-        emit('update_game_state', data, namespace="/", to=game)
+        emit('update_game_state', data, namespace="/", to=str(game))
