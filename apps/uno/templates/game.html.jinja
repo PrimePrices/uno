@@ -32,10 +32,15 @@
     <div id="popup">
         <div id="popup-background"></div>
         <div id="popup-content">
+            <img src="/static/image/cancel.svg" id="popup-cancel" draggable="false">
             <h3>Pick a colour</h3>
             <div id="colours">
                 {% for colour in colours %}
-                    <img src="/uno/static/image/{{colour}}/back.svg" class="card colour clickable" data-colour={{colour}}>
+                    <img src="/uno/static/image/{{colour}}/back.svg" 
+                    draggable="false" 
+                    id="popup-{{colour}}"
+                    class="card colour clickable" 
+                    data-colour={{colour}}>
                 {% endfor %}
             </div>
         </div>

@@ -8,7 +8,9 @@ def init_defaults(app):
         elif folder == "style":
             return send_from_directory("static/style", anything)
         elif folder == "image":
-            return send_from_directory("static/image/header", anything)
+            if "header" in anything:
+                return send_from_directory("static/image/header", anything)
+            return send_from_directory("static/image", anything)
         else: 
             abort(404)
     @app.route("/login")

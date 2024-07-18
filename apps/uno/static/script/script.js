@@ -11,11 +11,59 @@ function load_card({colour, value}) {
 function get_game_id(){
     return new URL(window.location).pathname.split("/")[3]
 }
-
-function get_colour_choice(card){
+function remove_popup(){
+    const popup=document.getElementById("popup")
+    popup.style.display="none"
+    const cancel=document.getElementById("popup-cancel")
+    const red=document.getElementById("popup-red")
+    const yellow=document.getElementById("popup-yellow")
+    const green=document.getElementById("popup-green")
+    const blue=document.getElementById("popup-blue")
+    cancel.removeEventListener("click", remove_popup)
+    const new_red = red.cloneNode()
+    const new_yellow = yellow.cloneNode()
+    const new_green = green.cloneNode()
+    const new_blue = blue.cloneNode()
+    red.parentNode.replaceChild(new_red, red)
+    yellow.parentNode.replaceChild(new_yellow, yellow)
+    green.parentNode.replaceChild(new_green, green)
+    blue.parentNode.replaceChild(new_blue, blue)
+    red.remove()
+    yellow.remove()
+    green.remove()
+    blue.remove()
+}
+function get_colour_choice(card, position){
     console.log(card)
     const popup=document.getElementById("popup")
     popup.style.display="block"
+    const cancel=document.getElementById("popup-cancel")
+    const red = document.getElementById("popup-red")
+    const yellow = document.getElementById("popup-yellow")
+    const green = document.getElementById("popup-green")
+    const blue = document.getElementById("popup-blue")
+    cancel.addEventListener("click", remove_popup)
+    red.addEventListener("click", function(){
+        socket.emit("update", {"game_name": get_game_id(), 
+                                "info":{"action": "player_played_a_card", "card":{"value":1, "colour": "red"}, "card_n": position}})
+        remove_popup()
+    })
+    yellow.addEventListener("click", function(){
+        socket.emit("update", {"game_name": get_game_id(), 
+                                "info":{"action": "player_played_a_card", "card":{"value":1, "colour": "yellow"}, "card_n": position}})
+        remove_popup()
+    })
+    green.addEventListener("click", function(){
+        socket.emit("update", {"game_name": get_game_id(), 
+                                "info":{"action": "player_played_a_card", "card":{"value":1, "colour": "green"}, "card_n": position}})
+        remove_popup()
+    })
+    blue.addEventListener("click", function(){
+        socket.emit("update", {"game_name": get_game_id(), 
+                                "info":{"action": "player_played_a_card", "card":{"value":1, "colour": "blue"}, "card_n": position}})
+        remove_popup()
+    })
+
 }
 function clicked_card(e){
     console.log(e)
@@ -35,7 +83,7 @@ function clicked_card(e){
         }
         console.log("position=", position)
         if (cardElem.classList.contains("blank")){
-            get_colour_choice(cardElem)
+            get_colour_choice(cardElem, position) // get colour 
         } else {        
         socket.emit("update", {"game_name": get_game_id(), 
                                 "info":{"action": "player_played_a_card", "card":{"value":value, "colour": colour}, "card_n": position}})

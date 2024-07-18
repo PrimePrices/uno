@@ -5,12 +5,34 @@ from flask import abort
 from .db import DBClass, CSVList, get_db
 from .transmit import transmit
 
+COLOUR_LOOKUP_SHORTHAND = {"green": "g", "blue": "b", "yellow": "y", "red": "r", "none": "u"}
+COLOUR_LOOKUP_LONGHAND = {"g": "green", "b": "blue", "y":"yellow", "r":"red", "u": "none"}
+
 def card_to_json(string:str) -> dict:
-    return {"colour": {"g": "green", "b": "blue", "y":"yellow", "r":"red", "u": "none"}[string[0]],
+    return {"colour": COLOUR_LOOKUP_LONGHAND[string[0]],
             "value": {"0":0,"1":1,"2":2,"3":3,"4":4,"5":5,"6":6,"7":7,"8":8,"9":9,"r":"reverse","d":"draw2", "s":"skip"}[string[1]]}
 def json_to_card(json:dict) -> str:
-    return {"green": "g", "blue": "b", "yellow": "y", "red": "r", "none": "u"}[json["colour"]]+json["value"][0]
-
+    return COLOUR_LOOKUP_SHORTHAND[json["colour"]]+json["value"][0]
+class Card:
+    def __init__(self, colour:str, value:str|int):
+        if colour not in ["green", "blue", "yellow", "red", "none"]:
+            try:
+                colour={"g": "green", "b": "blue", "y":"yellow", "r":"red", "u": "none"}[colour]
+            except KeyError:
+                raise CardInvalidException("colour invalid")
+        if value not in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "reverse", "draw2", "skip"]:
+            print(f"value exception for card {colour} {value}" )
+            raise CardInvalidException("value invalid")
+        self.colour=colour
+        self.value=value
+    def __str__(self) -> str:
+        return self.colour+" "+str(self.value)
+    def __eq__(self, card) -> bool:
+        return self.colour==card.colour and self.value==card.value
+    def __gt__(self, card) -> bool:
+        return self.value>card.value if self.value!=card.value else self.colour>card.colour
+    def __lt__(self, card) -> bool:
+        return self.value<card.value if self.value!=card.value else self.colour<card.colour
 
 class PlayerException(Exception):
     pass
@@ -224,7 +246,9 @@ class Game(DBClass):
         else:
             self.increment_players()
         return cards_left
-    def check_if_card_is_valid(self, card:str, player) -> bool:
+    def check_if_card_is_valid(self, card:str|Card, player) -> bool:
+        if type(card)==Card:
+            card=card.__str__()
         if card not in player.cards:
             abort(422, description="card not in hand")
         value=self.compare_card(card, self.discard[-1])

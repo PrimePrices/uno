@@ -22,6 +22,7 @@ def register_routes(socketio):
         data=data["info"]
         if data["action"] == "player_played_a_card":
             game=Game(game_name)
+            print(data, "(socketinge.py line25)")
             game.player_played_card(current_user.username, data["card"], data["card_n"])
         elif data["action"] == "player_drew_a_card":
             game=Game(game_name)
