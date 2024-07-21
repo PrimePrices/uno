@@ -29,7 +29,7 @@ def init_defaults(app):
     @app.route("/signup")
     @app.route("/sign_up")
     def SignUp():
-        return sign_up() # type: ignore
+        return redirect("/auth/signup") # type: ignore
 
 
     #errors

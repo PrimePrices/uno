@@ -2,6 +2,7 @@
     user-select: none;
     -webkit-user-select: none;
 }
+
 #popup{
     display: none;
     position: fixed;
@@ -13,14 +14,12 @@
     top: 0;
     width: 100%;
     height: 100%;
-    overflow: auto;
-}
+    overflow: auto;}
 #popup-cancel{
     position:relative;
     float:right;
     right: 0;
-    top: 0;
-}
+    top: 0;}
 #popup-background{
     position: fixed;
     z-index: 100;
@@ -28,8 +27,7 @@
     height: 100%;
     overflow: auto;
     background-color: black;
-    opacity: 0.3;
-}
+    opacity: 0.3;}
 #popup-content{
     position: relative;
     z-index: 105;
@@ -41,8 +39,7 @@
     border: 1px solid #888;
     width: auto;
     -ms-transform: translate(0, -50%);
-    transform: translate(0, -50%);
-}
+    transform: translate(0, -50%);}
 
 #gameState{
     outline:1px solid gray;
@@ -59,9 +56,12 @@
 /* player styles */
 
 #opponents{
+    /* The box that contains the opponents */
     flex-wrap: wrap;
+    flex-direction: row;
     float:left;
     width: 100%;
+    gap: 10px;
 }
 #player-hand, #opponent-hand{
     display: flex;
@@ -83,9 +83,14 @@
     margin: 10px;
     max-width: 1000px;
 }
+#opponents > .player{
+    flex: 1 1 20%-10px;
+    min-width: 20%;
+    max-width: max-content;
+}
 #myHand{
     flex-wrap: wrap;
-    position:absolute;
+    position:relative;
     bottom: 0;
 }
 /* card styles */

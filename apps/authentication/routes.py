@@ -45,6 +45,8 @@ def login():
     return render_template("login.html.jinja", url=request.url)
 
 @auth_bp.route("/sign_up", methods=["GET", "POST"])
+@auth_bp.route("/signup", methods=["GET", "POST"])
+@auth_bp.route("/sign-up", methods=["GET", "POST"])
 def sign_up():
     if request.method=="POST":
         username=request.form.get("username")
@@ -69,7 +71,7 @@ def sign_up():
         conn.execute(f"INSERT INTO user (username, hashed_password, email) VALUES ('{username}', '{h_pass}', '{email}') ")
         conn.commit()
         conn.close()
-        return "Accepted"
+        return redirect("/login")
     else:
         return render_template("signup.html.jinja")
 
