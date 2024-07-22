@@ -12,19 +12,22 @@
         <div id="player-hand">
             {% if hand %}
                 {% for card in hand %}
-                    {{- cardCard(card.colour, card.value, clickable=you) }}
+                    {{- cardCard(card.colour, card.value, position=loop.index-1, clickable=you) }}
                 {% endfor %}
             {% else %}
                 {% for i in range(number_of_cards) %}
-                    {{- cardCard("none", "back") }}
+                    {{- cardCard("none", "back", position=loop.index-1) }}
                 {% endfor %}
             {% endif %}
         </div>
     </div>
 {%- endmacro %}
 
-{% macro cardCard(colour, value, clickable=false) %}
-    <img class="card {% if clickable %} clickable {% if colour=="none" %}blank{% endif %}{% endif %}" src="/uno/static/image/{{colour}}/{{value}}.svg" data-value={{value}} data-colour={{colour}} class="card">
+{% macro cardCard(colour, value, position=0, clickable=false) %}
+    <img class="card {% if clickable %} clickable {% if colour=="none" %}blank{% endif %}{% endif %}" 
+        src="/uno/static/image/{{colour}}/{{value}}.svg" 
+        data-value={{value}} data-colour={{colour}} class="card"
+        style="--position:{{position}};" data-position={{position}}>
 {% endmacro %}
 
 {% macro popup(colours) %}

@@ -61,7 +61,7 @@ body {
 
 #footer{
   height: 30px;
-  position:relative;
+  position:fixed;
   background-color: rgb(99, 26, 218);
   bottom: 0;
   left:0;

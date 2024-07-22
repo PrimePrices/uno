@@ -64,11 +64,13 @@
     gap: 10px;
 }
 #player-hand, #opponent-hand{
-    display: flex;
-    flex-wrap: nowrap;
-    align-content: flex-start;
+    display: grid;
+    place-items: start;
+    justify-content: space-evenly;
+    position:relative
 }
 #player-name{
+    position:relative;
     margin-bottom: 10px;
     font-weight: bold;
     -webkit-user-drag: none;
@@ -84,11 +86,9 @@
     max-width: 1000px;
 }
 #opponents > .player{
-    flex: 1 1 20%-10px;
-    min-width: 20%;
-    max-width: max-content;
+    flex: 1 1 200px;
 }
-#myHand{
+/*#myHand{
     flex-wrap: wrap;
     position:relative;
     bottom: 0;
@@ -104,10 +104,12 @@
     align-items: center;
     font-weight: bold;
     font-size: 20px;
-    position: relative;
+    position: absolute;
     user-select: none;
     -webkit-user-select: none;
+    left: calc(var(--position)*20px);
     transition: transform 0.5s ease-in-out;
+    flex-grow: 1;
 }
 .clickable:hover{
     transform: translateY(-15px)
