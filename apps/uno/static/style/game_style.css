@@ -3,6 +3,12 @@
     -webkit-user-select: none;
 }
 
+:root {
+    --card-width: 50px;
+    --card-height: 75px;
+    --card-margin: 15px;
+}
+
 #popup{
     display: none;
     position: fixed;
@@ -55,31 +61,31 @@
 
 /* player styles */
 
-#opponents{
-    /* The box that contains the opponents */
+#opponents{ /* The box that contains the opponents */
     flex-wrap: wrap;
     flex-direction: row;
     float:left;
     width: 100%;
-    gap: 10px;
-}
-#player-hand, #opponent-hand{
-    display: grid;
+    gap: 10px;}
+#player-hand, #opponent-hand{ /*grid element that contains cards*/
+    display: inline-grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     place-items: start;
+    height: calc(var(--card-height) + var(--card-margin));
     justify-content: space-evenly;
-    position:relative
-}
+    position:relative;}
 #player-name{
     position:relative;
     margin-bottom: 10px;
     font-weight: bold;
     -webkit-user-drag: none;
     -webkit-user-select: none;
-    user-select:none
-}
+    user-select:none}
 .player{
     outline:1px solid white;
+    display: block;
     flex-wrap: wrap;
+    height: auto;
     float:left;
     padding: 10px;
     margin: 10px;
@@ -95,10 +101,10 @@
 }
 /* card styles */
 
-.card {
-    width: 50px;
-    height: 75px;
-    margin-top: 15px;
+.card:not(.stacking){
+    width: var(--card-width);
+    height: var(--card-height);
+    margin-top: var(--card-margin);
     margin-bottom: 0px;
     justify-content: center;
     align-items: center;
@@ -111,6 +117,16 @@
     transition: transform 0.5s ease-in-out;
     flex-grow: 1;
 }
+#draw :first-child{
+    z-index: 100;
+}
+.card.stacking{
+    position:relative;
+    width:var(--card-width);
+    height:var(--card-height);
+    margin-top: var(--card-margin);
+    margin-left:-53px;
+}
 .clickable:hover{
     transform: translateY(-15px)
 }
@@ -119,5 +135,5 @@
     height: 75px; 
 }
 .stacking{
-    margin-left: -55px
+    margin-left: -45px;
 }
