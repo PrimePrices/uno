@@ -1,25 +1,31 @@
+:root{
+  --header-height: 25px;
+  --header-padding-top: 10px;
+  --header-padding-bottom: 10px;
+  --header-height-total: calc(var(--header-height) + var(--header-padding-top) + var(--header-padding-bottom));
 
+  --footer-height-total: 50px;
+}
 body {
   background-color: #566992;
   font-family: Arial, sans-serif;
   height: 100vh;
   margin: 0;
 }
-
-.header{
-  height: 25px;
+/* header */
+.header{/* header container */
+  height: var(--header-height);
   position:fixed;
   background-color: rgb(89, 89, 206);
   top: 0;
   width:100vw;
-  padding: 10px;
+  padding-top: var(--header-padding-top);
+  padding-bottom: var(--header-padding-bottom);
+  padding-left: 10px;
   justify-content: space-between;
   text-align: center;
-  outline: black 1px solid;
-}
-
-/* Style the header links */
-.header a {
+  outline: black 1px solid;}
+.header a { /* header links */
   float: left;
   color: black;
   text-align: center;
@@ -27,36 +33,27 @@ body {
   padding-right: 12px;
   text-decoration: none;
   font-size: 18px;
-  border-radius: 4px;
-}
-
-.header_img{
+  border-radius: 4px;}
+.header_img{ /* styles the images to the right height and width */
   height: 25px;
-  width: 25px;
-}
-
-/* Style the logo link (notice that we set the same value of line-height and font-size to prevent the header to increase when the font gets bigger */
-.header a.logo {
+  width: 25px;}
+.header a.logo {/* Style the logo link*/
   font-size: 25px;
-  font-weight: bold;
-}
-
-
-/* Change the background color on mouse-over */
-.header a:hover {
+  font-weight: bold;}
+.header a:hover {/* Change the background color on mouse-over */
   background-color: #ddd;
-  color: black;
-}
+  color: black;}
 
 /* Style the active/current link*/
 .header a.active {
   background-color: dodgerblue;
-  color: white;
-}
+  color: white;}
 
 
 #content{
-  margin-top: 50px;
+  margin-top: var(--header-height-total);
+  margin-bottom: var(--footer-height-total);
+  height: calc(100% - var(--header-height-total) - var(--footer-height-total));
 }
 
 #footer{

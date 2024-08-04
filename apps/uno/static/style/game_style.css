@@ -1,14 +1,15 @@
 .non-draggable{
     user-select: none;
     -webkit-user-select: none;
-}
+    -webkit-user-drag: none;}
 
 :root {
     --card-width: 50px;
     --card-height: 75px;
-    --card-margin: 15px;
+    --card-margin: 15px;}
+body{
+    overflow: hidden;
 }
-
 #popup{
     display: none;
     position: fixed;
@@ -51,17 +52,16 @@
     outline:1px solid gray;
     display: flex;
     justify-content: space-around;
-    padding: 10px;
-}
+    padding: 10px;}
 #game-container {
     display: flex;
     justify-content: space-between;
-    padding: 20px;
-}
+    padding: 20px;}
 
 /* player styles */
 
 #opponents{ /* The box that contains the opponents */
+    display: flex;
     flex-wrap: wrap;
     flex-direction: row;
     float:left;
@@ -69,10 +69,10 @@
     gap: 10px;}
 #player-hand, #opponent-hand{ /*grid element that contains cards*/
     display: inline-grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, (100px, 1fr));
     place-items: start;
     height: calc(var(--card-height) + var(--card-margin));
-    justify-content: space-evenly;
+    justify-content: start;
     position:relative;}
 #player-name{
     position:relative;
@@ -89,16 +89,16 @@
     float:left;
     padding: 10px;
     margin: 10px;
-    max-width: 1000px;
-}
+    max-width: 1000px;}
 #opponents > .player{
-    flex: 1 1 200px;
-}
-/*#myHand{
-    flex-wrap: wrap;
-    position:relative;
-    bottom: 0;
-}
+    flex: 1 1 200px;}
+#myHand > .player{
+    position:absolute;
+    bottom: calc(var(--footer-height-total) + 10px);
+    margin:10px;
+    width: calc(100% - 40px);}
+
+
 /* card styles */
 
 .card:not(.stacking){
@@ -133,7 +133,4 @@
 #draw{
     width: 200px;
     height: 75px; 
-}
-.stacking{
-    margin-left: -45px;
 }

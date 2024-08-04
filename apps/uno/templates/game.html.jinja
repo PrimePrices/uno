@@ -7,7 +7,7 @@
 {% endblock %}
 
 {%- macro playerCard(username, number_of_cards, hand, you, focus) %}
-    <div class="player" data-you="{{ you }}" name="{{ username }}" focus={{ focus }}>
+    <div class="player" data-you="{{ you }}" name="{{ username }}" focus={{ focus }} data-number_of_cards={{ number_of_cards }}>
         <div id="player-name">{{ username }}</div>
         <div id="player-hand">
             {% if hand %}
