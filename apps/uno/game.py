@@ -7,12 +7,16 @@ from .transmit import transmit
 
 COLOUR_LOOKUP_SHORTHAND = {"green": "g", "blue": "b", "yellow": "y", "red": "r", "none": "u"}
 COLOUR_LOOKUP_LONGHAND = {"g": "green", "b": "blue", "y":"yellow", "r":"red", "u": "none"}
-
+VALUE_LOOKUP_SHORTHAND = {"0": "0", "1": "1", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7", "8": "8", "9": "9", 
+                          0:"0", 1:"1",2:"2",3:"3",4:"4",5:"5",6:"6",7:"7",8:"8",9:"9",
+                          "reverse": "r", "draw2": "d", "skip": "s", "wild": "w", "draw4": "d4"}
+VALUE_LOOKUP_LONGHAND = {"0": 0, "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "r":"reverse","d":"draw2", "s":"skip", "d4":"draw4", "w":"wild"}
+# These should oly be used when handling the database
 def card_to_json(string:str) -> dict:
     return {"colour": COLOUR_LOOKUP_LONGHAND[string[0]],
-            "value": {"0":0,"1":1,"2":2,"3":3,"4":4,"5":5,"6":6,"7":7,"8":8,"9":9,"r":"reverse","d":"draw2", "s":"skip"}[string[1]]}
+            "value": VALUE_LOOKUP_LONGHAND[string[1:]]}
 def json_to_card(json:dict) -> str:
-    return COLOUR_LOOKUP_SHORTHAND[json["colour"]]+json["value"][0]
+    return COLOUR_LOOKUP_SHORTHAND[json["colour"]]+VALUE_LOOKUP_SHORTHAND[json["value"]]
 class Card:
     def __init__(self, colour:str, value:str|int):
         if colour not in ["green", "blue", "yellow", "red", "none"]:
@@ -65,12 +69,9 @@ class Player(DBClass):
     def __str__(self) -> str:
         return self.username
     def played_a_card(self, card:str, card_n:int)->int:
-        if self.cards[card_n]==card:
-            self.cards.pop(card_n)
-            self.number_of_cards=self.number_of_cards-1
-            return self.number_of_cards
-        else:
-            raise BaseException(f"Data was invalid, {card=} not in position {card_n} of {self.cards}")
+        self.cards.pop(card_n)
+        self.number_of_cards=self.number_of_cards-1
+        return self.number_of_cards
     def drew_a_card(self, card:str):
         self.number_of_cards=self.number_of_cards+1
         self.cards.append(card)
@@ -210,24 +211,21 @@ class Game(DBClass):
         self.draw, cards = self.draw[n:], self.draw[:n]
         return cards
     def player_played_card(self, username: str, card:dict, card_n: int, colour=None) -> int:
-        player=Player(username, game_id=self.id)
+        player: Player=Player(username, game_id=self.id)
+        if type(card_n) != int:
+            card_n=int(card_n)
         hand = player.cards
-        card_str:str=json_to_card(card)
-        if not self.check_if_card_is_valid(card_str, player):
+        print(f"{card=} {card_n=} {colour=} {self.next_player=}")
+        if not self.check_if_card_is_valid(card, card_n, player):
             raise CardInvalidException("card invalid")
+        card_str = json_to_card(card)
         cards_left=player.played_a_card(card_str, int(card_n))
-        if card_str in ["u4", "uw", "u1"]: # check if colour is provided
-            if colour not in ["g", "r", "b", "y"]:
-                raise ColourNotProvidedException("colour not provided")
-            else:
-                self.discard.append(colour+card_str) #type:ignore
-        else:
-            self.discard.append(card_str)
+        self.discard.append(card_str)
         transmit(int(self.id), #type:ignore
                  "player_played_a_card", 
                  username, 
-                 {"card": card_to_json(card_str), "card_n": card_n, "cards_left": cards_left})
-        if card_str[-1] == "d":
+                 {"card": card, "card_n": card_n, "cards_left": cards_left})
+        if card["value"] == "draw2":
             self.increment_players()
             next_player=Player(self.next_player, game_id=self.id)
             for i in range(2):
@@ -235,49 +233,65 @@ class Game(DBClass):
                 transmit(self.id, "player_drew_a_card", next_player.username, {}, # type:ignore
                           exclue_request_sid=True, request_sid=next_player.request_sid,
                           private_message={"action": "you_drew_a_card", "card": card_to_json(drawn_cards)})
-        if card_str == "u4":
+        if card["value"] == "draw4":
             self.increment_players()
             next_player=Player(self.next_player, game_id=self.id)
             for i in range(4):
-                next_player.cards.append(self.draw_card()[0])
+                next_player.drew_a_card(drawn_card:=self.draw_card()[0])
+                transmit(self.id, "player_drew_a_card", next_player.username, {}, # type:ignore
+                          exclue_request_sid=True, request_sid=next_player.request_sid,
+                          private_message={"action": "you_drew_a_card", "card": card_to_json(drawn_card)})
         if card_str[-1] == "r":
             self.reverse_players()
             return cards_left
         else:
             self.increment_players()
         return cards_left
-    def check_if_card_is_valid(self, card:str|Card, player) -> bool:
-        if type(card)==Card:
-            card=card.__str__()
-        if card not in player.cards:
-            abort(422, description="card not in hand")
-        value=self.compare_card(card, self.discard[-1])
-        if "anyone_can_play_with_identical_cards" in self.rules and value==2:
-            return True
-        if bool(value) and self.next_player==player:
-            return True
-        if type(player)==Player:
-            if bool(value) and self.next_player==player.username:
-                return True
-            
-        print(f"comparison {value=} between {card=} and {self.discard[-1]=}; {self.next_player=}, {player.__repr__()=} (Game.player_played_a_card)")
-        return False
-    def compare_card(self, card, discard)->int: #marker extend for specials
-        if card==discard[0]+discard[1]:
-            return 2
-        if len(discard)>=3:
-            if card[0]==discard[2]:
-                return 1
+    def check_if_card_is_valid(self, card:dict, card_n: int, player: Player) -> bool:
+        print("checking card validity")
+        print(f"cards = {str(player.cards)}")
+        if card["value"] in ("wild", "draw4"):
+            if card["value"] == "wild":
+                if ("uw" not in player.cards) and ("u1" not in player.cards) :
+                    raise CardInvalidException("card not found in hand")
+                if player.cards[card_n] not in ("uw", "u1"):
+                    print("card not at specified location in hand")
+                    raise CardInvalidException("card not valid")
+            if card["value"] == "draw4":
+                if "u4" not in player.cards:
+                    raise CardInvalidException("card not found in hand")
+                if player.cards[card_n]!="u4":
+                    print("card not at specified location in hand")
+                    raise CardInvalidException("card not valid")
         else:
-            if card[0]==discard[0]:
-                return 1
-            if card[1]==discard[1]:
-                return 1
-            if card[0]=="u":
-                return 1
-        if card[1]==discard[1]:
-            return 1
-        return 0  
+            if json_to_card(card) not in player.cards:
+                print(f"{json_to_card(card)=}")
+                raise CardInvalidException("card not found in hand")
+                abort(422, description="card not in hand")
+            if player.cards[card_n]!=json_to_card(card):
+                print("card not at specified location in hand")
+                raise CardInvalidException("card not valid")
+        #only reach this point if card is in player hand
+        discard=card_to_json(self.discard[-1])
+        print(f"{discard=} {self.discard[-1]=}")
+        if player.username!=self.next_player:
+            print(f"{player.username=} {self.next_player=}")
+            if card==discard and "anyone_can_play_with_identical_cards" in self.rules:
+                return True
+            else: 
+                raise CardInvalidException("not your turn")
+        #only reach this point if correct player has played a card
+        if str(card["value"]) == str(discard["value"]):
+            return True
+        if card["value"] == "wild":
+            return True
+        if card["value"] == "draw4":
+            return True
+        if card["colour"] == discard["colour"]:
+            return True
+        print(f" {card=} and {self.discard[-1]=}; {self.next_player=}, {player.__repr__()=} (Game.player_played_a_card)")
+        raise CardInvalidException("card not valid")
+
 
 
 def make_game(username:str, rules:str|None) -> Game:

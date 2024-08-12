@@ -43,24 +43,26 @@ function get_colour_choice(card, position){
     const green = document.getElementById("popup-green")
     const blue = document.getElementById("popup-blue")
     cancel.addEventListener("click", remove_popup)
+    const value= card.getAttribute("data-value")
+    console.log(value)
     red.addEventListener("click", function(){
         socket.emit("update", {"game_name": get_game_id(), 
-                                "info":{"action": "player_played_a_card", "card":{"value":1, "colour": "red"}, "card_n": position}})
+                                "info":{"action": "player_played_a_card", "card":{"value":value, "colour": "red"}, "card_n": position}})
         remove_popup()
     })
     yellow.addEventListener("click", function(){
         socket.emit("update", {"game_name": get_game_id(), 
-                                "info":{"action": "player_played_a_card", "card":{"value":1, "colour": "yellow"}, "card_n": position}})
+                                "info":{"action": "player_played_a_card", "card":{"value":value, "colour": "yellow"}, "card_n": position}})
         remove_popup()
     })
     green.addEventListener("click", function(){
         socket.emit("update", {"game_name": get_game_id(), 
-                                "info":{"action": "player_played_a_card", "card":{"value":1, "colour": "green"}, "card_n": position}})
+                                "info":{"action": "player_played_a_card", "card":{"value":value, "colour": "green"}, "card_n": position}})
         remove_popup()
     })
     blue.addEventListener("click", function(){
         socket.emit("update", {"game_name": get_game_id(), 
-                                "info":{"action": "player_played_a_card", "card":{"value":1, "colour": "blue"}, "card_n": position}})
+                                "info":{"action": "player_played_a_card", "card":{"value":value, "colour": "blue"}, "card_n": position}})
         remove_popup()
     })
 

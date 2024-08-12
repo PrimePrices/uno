@@ -66,13 +66,24 @@ def register_routes(socketio):
     print("routes registered for socketio")
 
     @socketio.on_error_default
-    def DefaultErrorHandler(error):
+    def DefaultErrorHandler(error: Exception) -> None:
         print(error)
         if str(error)=="card invalid":
             print("Card invalid error raised (socketio)")
             flash("Card invalid")
         elif str(error)=="colour not provided":
             print("Colour not provided error raised (socketio)")
-            print(error)
+
             flash("Please provide colour")
+        elif str(error) in ("card not in hand", "not in hand", "card not found in hand"):
+            print("Card not in hand error raised (socketio)")
+
+            flash("Card not in hand")
+        elif str(error)=="not your turn":
+            print("Not your turn error raised (socketio)")
+
+            flash("Not your turn")
+        else: 
+            print(error, str(error.__traceback__))
+            raise(error)
 

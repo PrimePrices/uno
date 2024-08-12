@@ -47,7 +47,10 @@ body{
     width: auto;
     -ms-transform: translate(0, -50%);
     transform: translate(0, -50%);}
-
+#colours> img{
+    left: 0px;
+    position: relative;
+}
 #gameState{
     outline:1px solid gray;
     display: flex;
