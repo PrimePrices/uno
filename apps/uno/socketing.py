@@ -30,7 +30,7 @@ def register_routes(socketio):
             game.increment_players()
             player=Player(current_user.username, game_id=game.id)
             player.drew_a_card(card[0])
-            transmit(str(game_name), 
+            transmit(int(game_name), 
                      data["action"], 
                      current_user.username, 
                      {"draw_length": len(game.draw)}, 
@@ -54,8 +54,12 @@ def register_routes(socketio):
         return True
     @socketio.on("join")
     def handle_join_room(data):
-        print("user joined room " + data["room"]) 
-        join_room(data["room"])
+        if current_user.is_authenticated:
+            print(f"user {current_user.username} joined room " + data["room"]) 
+            join_room(data["room"])
+            transmit(int(data["room"]), "player_joined", current_user.username)
+        else:
+            print("user not authenticated")
     @socketio.on("leave")
     def handle_leave_room(data):
         print("user left room " + data["room"])
@@ -73,15 +77,12 @@ def register_routes(socketio):
             flash("Card invalid")
         elif str(error)=="colour not provided":
             print("Colour not provided error raised (socketio)")
-
             flash("Please provide colour")
         elif str(error) in ("card not in hand", "not in hand", "card not found in hand"):
             print("Card not in hand error raised (socketio)")
-
             flash("Card not in hand")
         elif str(error)=="not your turn":
             print("Not your turn error raised (socketio)")
-
             flash("Not your turn")
         else: 
             print(error, str(error.__traceback__))

@@ -1,11 +1,15 @@
 blank={colour:"none", value:"back"}
-function load_card({colour, value}) {
+function load_card({colour, value}, position=null) {
     const img = document.createElement("img");
     img.className = "card";
     img.addEventListener("click", clicked_card);
     img.src = `/uno/static/image/${colour}/${value}.svg`;
     img.setAttribute("data-value", value);
     img.setAttribute("data-colour", colour);
+    if (position != null) {
+        img.setAttribute("data-position", position);
+        img.setAttribute("style", `--position:${position}`);
+    }
     return img;
 }
 function get_game_id(){
@@ -220,8 +224,8 @@ socket.on('update_game_state', function(data) {
             player=load_player()
             break;
         case "player_left":
-            //username
-            break;
+            player = get_player(data.player)
+            player.remove()
         case "player_won":
             //username
             break;
@@ -242,7 +246,8 @@ socket.on('update_game_state', function(data) {
             console.log(data)
             player = document.getElementById("myHand").children[0]
             console.log(player, player.children[1])
-            var card=load_card(data["card"])
+            var number_of_cards=player.children[1].children.length
+            var card=load_card(data["card"], position = number_of_cards)
             card.classList.add("clickable")
             if (data["card"].colour=="none"){
                 card.classList.add("blank")

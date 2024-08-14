@@ -6,7 +6,7 @@
       
       -->
       .external-border, .internal-border {
-        fill: #fff; 
+        fill: #f55; 
       }
 
       .external-border {
@@ -32,7 +32,7 @@
 
       .colour-selection-outline {
         fill: none;
-        stroke: #fff;
+        stroke: #f55;
         stroke-width: 4px;
       }
     </style>

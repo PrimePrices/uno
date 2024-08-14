@@ -48,7 +48,8 @@ class ExcludeRoutesFilter(logging.Filter):
             "GET /favicon.ico",
             "GET /static/",
             "GET /images/header/",
-            "GET /socket.io/"]
+            "GET /socket.io/"
+            "POST /socket.io/"]
         for i in excluded_strings:
             if i in record.getMessage():
                 return False
@@ -71,7 +72,6 @@ def site_map()->list:
 @app.route("/")
 @app.route("/index")
 def index():
-    print(f"{current_user.is_authenticated=}")
     return render_template("index.html.jinja")
 
 if __name__ == '__main__':

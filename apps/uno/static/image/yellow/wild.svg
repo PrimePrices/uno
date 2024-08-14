@@ -1,12 +1,9 @@
 <svg id="svg2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 242 362">
   <defs>
     <style>
-      <!--
-        
       
-      -->
       .external-border, .internal-border {
-        fill: #fff; 
+        fill: #fa0; 
       }
 
       .external-border {
@@ -32,7 +29,7 @@
 
       .colour-selection-outline {
         fill: none;
-        stroke: #fff;
+        stroke: #fa0;
         stroke-width: 4px;
       }
     </style>

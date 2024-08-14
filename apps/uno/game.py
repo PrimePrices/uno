@@ -241,7 +241,9 @@ class Game(DBClass):
                 transmit(self.id, "player_drew_a_card", next_player.username, {}, # type:ignore
                           exclue_request_sid=True, request_sid=next_player.request_sid,
                           private_message={"action": "you_drew_a_card", "card": card_to_json(drawn_card)})
-        if card_str[-1] == "r":
+        if card["value"] == "skip":
+            self.increment_players()
+        if card["value"] == "reverse":
             self.reverse_players()
             return cards_left
         else:
