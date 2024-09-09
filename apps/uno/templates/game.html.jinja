@@ -7,7 +7,7 @@
 {% endblock %}
 
 {%- macro playerCard(username, number_of_cards, hand, you, focus) %}
-    <div class="player" data-you="{{ you }}" name="{{ username }}" focus={{ focus }} data-number_of_cards={{ number_of_cards }}>
+    <div class="player {{ focus*"player-turn"}}" data-you="{{ you }}" name="{{ username }}" focus={{ focus }} data-number_of_cards={{ number_of_cards }}>
         <div id="player-name">{{ username }}</div>
         <div id="player-hand">
             {% if hand %}
@@ -62,7 +62,7 @@
         {% for player in data.players %}
             {% set info = data.players[player] %}
             {% if info.you == false %}
-                {{- playerCard(player, info.number_of_cards, info.hand, "false", info.next_player==player) }}
+                {{- playerCard(player, info.number_of_cards, info.hand, "false", data.next_player==player) }}
             {% endif %}
         {% endfor %}
     </div>

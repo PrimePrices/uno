@@ -27,7 +27,7 @@ def register_routes(socketio):
         elif data["action"] == "player_drew_a_card":
             game=Game(game_name)
             card=game.draw_card()
-            game.increment_players(transmit_increment=True, previous_function="player_drew_a_card(socketing)")
+            game.increment_players(transmit_increment=True)
             player=Player(current_user.username, game_id=game.id)
             player.drew_a_card(card[0])
             transmit(int(game_name), 
@@ -84,6 +84,9 @@ def register_routes(socketio):
         elif str(error)=="not your turn":
             print("Not your turn error raised (socketio)")
             flash("Not your turn")
+        elif str(error)=="card not valid":
+            print("Card not valid error raised (socketio)")
+            flash("Card not valid")
         else: 
             print(error, str(error.__traceback__))
             raise(error)

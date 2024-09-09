@@ -13,6 +13,10 @@ VALUE_LOOKUP_SHORTHAND = {"0": "0", "1": "1", "2": "2", "3": "3", "4": "4", "5":
 VALUE_LOOKUP_LONGHAND = {"0": 0, "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "r":"reverse","d":"draw2", "s":"skip", "d4":"draw4", "w":"wild"}
 # These should oly be used when handling the database
 def card_to_json(string:str) -> dict:
+    if string=="u1":
+        return {"colour": "none", "value": "wild"}
+    if string=="u4":
+        return {"colour": "none", "value": "draw4"}
     return {"colour": COLOUR_LOOKUP_LONGHAND[string[0]],
             "value": VALUE_LOOKUP_LONGHAND[string[1:]]}
 def json_to_card(json:dict) -> str:
@@ -114,7 +118,7 @@ class Game(DBClass):
             else:
                 print(f"{id=}")
                 raise GameException("Game doesn't exist")
-    def increment_players(self, transmit_increment=False, previous_function=None) -> None: 
+    def increment_players(self, transmit_increment=False) -> None: 
         """
         Shift the order of the players
         Not to be called alongside reverse_players()
@@ -129,7 +133,6 @@ class Game(DBClass):
         for n, v in enumerate(players):
             v.position=n
         self.next_player=players[0]
-        print(f"{self.next_player=}  {previous_function=}(game.increment_players)")
         if transmit_increment:
             transmit(self.id, "players_turn", self.next_player, {})# type:ignore
     def reverse_players(self, transmit_increment=False):
@@ -231,7 +234,7 @@ class Game(DBClass):
                  username, 
                  {"card": card, "card_n": card_n, "cards_left": cards_left})
         if card["value"] == "draw2":
-            self.increment_players(previous_function="game.player_played_card@draw2")
+            self.increment_players()
             next_player=Player(self.next_player, game_id=self.id)
             for i in range(2):
                 next_player.drew_a_card(drawn_cards:=self.draw_card()[0])
@@ -239,7 +242,7 @@ class Game(DBClass):
                           exclue_request_sid=True, request_sid=next_player.request_sid,
                           private_message={"action": "you_drew_a_card", "card": card_to_json(drawn_cards)})
         if card["value"] == "draw4":
-            self.increment_players(transmit_increment=False, previous_function="game.player_played_card@draw4")
+            self.increment_players(transmit_increment=False)
             next_player=Player(self.next_player, game_id=self.id)
             for i in range(4):
                 next_player.drew_a_card(drawn_card:=self.draw_card()[0])
@@ -247,12 +250,12 @@ class Game(DBClass):
                           exclue_request_sid=True, request_sid=next_player.request_sid,
                           private_message={"action": "you_drew_a_card", "card": card_to_json(drawn_card)})
         if card["value"] == "skip":
-            self.increment_players(transmit_increment=False, previous_function="game.player_played_card@skip")
+            self.increment_players(transmit_increment=False)
         if card["value"] == "reverse":
             self.reverse_players(transmit_increment=True)
             return cards_left
         else:
-            self.increment_players(transmit_increment=True, previous_function="game.player_played_card@normal")
+            self.increment_players(transmit_increment=True)
 
         print()
         print()
