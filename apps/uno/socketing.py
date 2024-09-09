@@ -27,7 +27,7 @@ def register_routes(socketio):
         elif data["action"] == "player_drew_a_card":
             game=Game(game_name)
             card=game.draw_card()
-            game.increment_players()
+            game.increment_players(transmit_increment=True, previous_function="player_drew_a_card(socketing)")
             player=Player(current_user.username, game_id=game.id)
             player.drew_a_card(card[0])
             transmit(int(game_name), 

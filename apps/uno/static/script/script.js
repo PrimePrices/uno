@@ -94,7 +94,7 @@ function clicked_card(e){
         socket.emit("update", {"game_name": get_game_id(), 
                                 "info":{"action": "player_played_a_card", "card":{"value":value, "colour": colour}, "card_n": position}})
         }
-    } else if (cardElem.parentNode.id="draw"){
+    } else if (cardElem.parentNode.id=="draw"){
         socket.emit("update", {"game_name": get_game_id(), "info":{"action": "player_drew_a_card"}})
     } else {console.log("somethings gone wrong")}
 };
@@ -208,16 +208,26 @@ socket.on("flash", function(data){
     alert(data.message)
 })
 socket.on('update_game_state', function(data) {
-    let player;
     switch(data.action) {
         case "player_played_a_card":
             //username, card, card_n, cards_left
             console.log("recieved!!", data)
+            player=data.player
             player_played_card(data);
             break;
         case "players_turn":
-            //player
-            console.log(data.player, "'s turn");
+            var players=document.getElementsByClassName("player")
+            for (const player_i in players){
+                if (players[player_i].classList!=undefined){
+                    if (players[player_i].classList.contains("player-turn")){
+                        players[player_i].classList.remove("player-turn")
+                    }
+                }
+            }
+            var player = get_player(data.player)
+            player.classList.add("player-turn")
+            console.log(player, player.classList)
+
             break;
         case "player_joined":
             //username position number_of_cards draw_length
@@ -244,7 +254,7 @@ socket.on('update_game_state', function(data) {
 
         case "you_drew_a_card":
             console.log(data)
-            player = document.getElementById("myHand").children[0]
+            var player = document.getElementById("myHand").children[0]
             console.log(player, player.children[1])
             var number_of_cards=player.children[1].children.length
             var card=load_card(data["card"], position = number_of_cards)

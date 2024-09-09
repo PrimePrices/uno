@@ -77,6 +77,10 @@ body{
     height: calc(var(--card-height) + var(--card-margin));
     justify-content: start;
     position:relative;}
+.player-turn{
+    border-color: green;
+    outline: 3px solid green !important;
+}
 #player-name{
     position:relative;
     margin-bottom: 10px;

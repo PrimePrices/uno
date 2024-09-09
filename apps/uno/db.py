@@ -7,7 +7,6 @@ class DBClass:
     def __init__(self):self.id=None # This stops the self.id from causing errors when the code is parsed
     def _update_db(self, attribute:str, value:str|list):
         conn= get_db()
-        print(f"updating {attribute} to {value}")
         if type(value)==list:
             value=",".join(value)
         conn.execute(f"UPDATE {self.table} SET {attribute}='{value}' WHERE id={self.id}")
