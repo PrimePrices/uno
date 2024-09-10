@@ -4,7 +4,7 @@ function startGame(){
     console.log(current)
     rules=["w", "t", "rt5"]
     stri=rules.toString()
-    var i=document.getElementById("player-count").value
+    //var i=document.getElementById("player-count").value
     console.log(stri)
     r=stri.replaceAll(",", "_")
     window.location.href=root+"/uno/newgame"+"/w_t_rt5"

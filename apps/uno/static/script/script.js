@@ -133,9 +133,17 @@ function load_player(player_data){
     const elem = document.createElement("div");
     elem.setAttribute("data-you", player_data["you"])
     elem.className="player";
-    elem.id=player_data["username"]
+    elem.setAttribute("id", player_data["username"])
+    elem.setAttribute("name",player_data["username"])
+    elem.focus=false
+    elem.number_of_cards=player_data["number_of_cards"]
     const name=document.createElement("div")
-    name.innerHTML=String(player_data.position)+") "+player_data["username"]
+    name.setAttribute("id", "player-name")
+    if (player_data["position"]==undefined){
+        name.innerHTML=player_data["username"]
+    } else {
+        name.innerHTML=String(player_data.position)+") "+player_data["username"]
+    }
     name.className="player-name"
     elem.append(name)
     const cards=document.createElement("div")
@@ -231,7 +239,16 @@ socket.on('update_game_state', function(data) {
             break;
         case "player_joined":
             //username position number_of_cards draw_length
-            player=load_player()
+            var new_data={"you":false, 
+                "username":data.player, 
+                "position":data.position, 
+                "number_of_cards":7}
+            if (get_player(data.player) == undefined) {
+                player=load_player(new_data)
+                var opponents=document.getElementById("opponents")
+                opponents.append(player)
+            }
+            
             break;
         case "player_left":
             player = get_player(data.player)

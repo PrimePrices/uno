@@ -57,7 +57,7 @@ def register_routes(socketio):
         if current_user.is_authenticated:
             print(f"user {current_user.username} joined room " + data["room"]) 
             join_room(data["room"])
-            transmit(int(data["room"]), "player_joined", current_user.username)
+            transmit(int(data["room"]), "player_joined", current_user.username, exclue_request_sid=True, request_sid=request.sid)# type:ignore
         else:
             print("user not authenticated")
     @socketio.on("leave")
