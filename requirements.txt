@@ -1,2 +1,4 @@
-Flask
-Flask-socketio
+flask
+flask-socketio
+flask-login
+bcrypt
