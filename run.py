@@ -48,7 +48,7 @@ class ExcludeRoutesFilter(logging.Filter):
             "GET /favicon.ico",
             "GET /static/",
             "GET /images/header/",
-            "GET /socket.io/"
+            "GET /socket.io/",
             "POST /socket.io/"]
         for i in excluded_strings:
             if i in record.getMessage():
