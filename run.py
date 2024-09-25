@@ -75,4 +75,4 @@ def index():
     return render_template("index.html.jinja")
 
 if __name__ == '__main__':
-    socketio.run(app, use_reloader=False, log_output=True, port=5000)#, ssl_context="adhoc")
+    socketio.run(app, use_reloader=False, log_output=True, port=5000)#, host="0.0.0.0", ssl_context="adhoc")
