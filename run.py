@@ -1,8 +1,6 @@
-from flask import Flask, render_template, request, send_from_directory, redirect, abort, make_response, Response, url_for
+from flask import Flask, render_template, request, url_for
 from flask_socketio import SocketIO
-from flask_login import login_required
 import logging
-from datetime import timedelta
 
 from apps.admin.__init__ import init_admin_app
 from apps.uno.__init__ import init_uno_app
@@ -16,7 +14,6 @@ app=Flask(__name__)
 app.secret_key = "Proof by induction should always be taught by ducks!"
 socketio=SocketIO(app)
 app.template_folder = "templates"
-#app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=30)
 init_defaults(app)
 init_uno_app(app, socketio)
 init_admin_app(app)
@@ -48,7 +45,7 @@ class ExcludeRoutesFilter(logging.Filter):
             "GET /favicon.ico",
             "GET /static/",
             "GET /images/header/",
-            "GET /socket.io/"
+            "GET /socket.io/",
             "POST /socket.io/"]
         for i in excluded_strings:
             if i in record.getMessage():
@@ -75,4 +72,4 @@ def index():
     return render_template("index.html.jinja")
 
 if __name__ == '__main__':
-    socketio.run(app, use_reloader=False, log_output=True, port=5000)#, ssl_context="adhoc")
+    socketio.run(app, use_reloader=False, log_output=True, port=5000, allow_unsafe_werkzeug=True)#, ssl_context="adhoc")
