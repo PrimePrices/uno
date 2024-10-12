@@ -10,7 +10,7 @@
 body{
     overflow: hidden;
 }
-#popup{
+#popup, #popupYouWon{
     display: none;
     position: fixed;
     justify-content: center;

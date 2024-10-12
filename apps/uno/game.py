@@ -1,5 +1,6 @@
 from random import shuffle
 from flask import abort
+from flask import request
 from typing import Any, Literal
 from flask import abort
 from .db import DBClass, CSVList, get_db
@@ -13,12 +14,16 @@ VALUE_LOOKUP_SHORTHAND = {"0": "0", "1": "1", "2": "2", "3": "3", "4": "4", "5":
 VALUE_LOOKUP_LONGHAND = {"0": 0, "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "r":"reverse","d":"draw2", "s":"skip", "d4":"draw4", "w":"wild"}
 # These should oly be used when handling the database
 def card_to_json(string:str) -> dict:
-    if string=="u1":
-        return {"colour": "none", "value": "wild"}
-    if string=="u4":
-        return {"colour": "none", "value": "draw4"}
-    return {"colour": COLOUR_LOOKUP_LONGHAND[string[0]],
-            "value": VALUE_LOOKUP_LONGHAND[string[1:]]}
+    try:
+        if string=="u1":
+            return {"colour": "none", "value": "wild"}
+        if string=="u4":
+            return {"colour": "none", "value": "draw4"}
+        return {"colour": COLOUR_LOOKUP_LONGHAND[string[0]],
+                "value": VALUE_LOOKUP_LONGHAND[string[1:]]}
+    except KeyError as Err: 
+        print("Error, card was incorrect", string)
+        raise(Err)
 def json_to_card(json:dict) -> str:
     return COLOUR_LOOKUP_SHORTHAND[json["colour"]]+VALUE_LOOKUP_SHORTHAND[json["value"]]
 class Card:
@@ -78,6 +83,7 @@ class Player(DBClass):
         return self.number_of_cards
     def drew_a_card(self, card:str):
         self.number_of_cards=self.number_of_cards+1
+        print(f"Player drew a card", card, "line 86 game.py")
         self.cards.append(card)
     def __repr__(self) -> str:
         return f"Player (username: {self.username}, cards: {self.cards}, number_of_cards: {self.number_of_cards}, game_id: {self.game_id}, position: {self.position}, id: {self.id})"
@@ -306,6 +312,23 @@ class Game(DBClass):
             return True
         print(f" {card=} and {self.discard[-1]=}; {self.next_player=}, {player.__repr__()=} (Game.player_played_a_card)")
         raise CardInvalidException("card not valid")
+    def player_drew_a_card(self, username):
+        player=Player(username)
+        if self.next_player!=player.username:
+            print(f"{self.next_player=} {player=} {player.username=}")
+            raise CardInvalidException("not your turn")
+        self.increment_players
+        card=self.draw_card()[0]
+        print("card drawn", card)
+        player.drew_a_card(card)
+        transmit(self.id, #type:ignore
+                "player_drew a card", 
+                username, 
+                {"draw_length": len(self.draw)}, 
+                exclue_request_sid=True, 
+                request_sid=request.sid, #type: ignore
+                private_message={"action": "you_drew_a_card", "card": card_to_json(card[0]), "draw_length": len(self.draw)})
+            
 
 
 

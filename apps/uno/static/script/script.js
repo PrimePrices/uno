@@ -283,8 +283,7 @@ socket.on('update_game_state', function(data) {
             //username, card, draw_length
             break;
         case "you_won":
-            //username
-            break;
+            console.log(document.getElementById("popupYouWon"))
         case "uno_challenge":
             //from, to, timestamp
             break;

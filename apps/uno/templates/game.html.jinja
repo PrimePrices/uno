@@ -56,8 +56,22 @@
         </div>
     </div>
 {% endmacro %}
+
+
+{% macro popupYouWon() %}
+    <div id="popupYouWon">
+        <div id="popup-background"></div>
+        <div id="popup-content">
+            <h3>You won</h3>
+            {% if logged_in() %}
+            {% endif %}
+
+        </div>
+    </div>
+{% endmacro %}
 {% block content %}
     {{- popup(["red", "blue", "green", "yellow"]) -}}
+    {{- popupYouWon() -}}
     <div id="opponents">
         {% for player in data.players %}
             {% set info = data.players[player] %}

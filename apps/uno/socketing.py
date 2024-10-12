@@ -22,21 +22,11 @@ def register_routes(socketio):
         data=data["info"]
         if data["action"] == "player_played_a_card":
             game=Game(game_name)
-            print(data, "(socketinge.py line25)")
             game.player_played_card(current_user.username, data["card"], data["card_n"])
         elif data["action"] == "player_drew_a_card":
             game=Game(game_name)
-            card=game.draw_card()
-            game.increment_players(transmit_increment=True)
-            player=Player(current_user.username, game_id=game.id)
-            player.drew_a_card(card[0])
-            transmit(int(game_name), 
-                     data["action"], 
-                     current_user.username, 
-                     {"draw_length": len(game.draw)}, 
-                     exclue_request_sid=True, 
-                     request_sid=request.sid, #type: ignore
-                     private_message={"action": "you_drew_a_card", "card": card_to_json(card[0]), "draw_length": len(game.draw)})
+            game.player_drew_a_card(current_user.username)
+            
         elif data["action"] == "uno_challenge":
             print(f'{data["from"]} uno challenges {data["to"]} at {data["timestamp"]}')
         else: print(data)
